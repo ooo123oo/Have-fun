@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>موقع انبسط</title>
+    <style>
+        :root {
+            --primary: #ff6b6b;
+            --secondary: #4ecdc4;
+            --dark: #2d3436;
+            --light: #f7f9fa;
+            --white: #ffffff;
+            --radius: 12px;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tahoma', sans-serif;
+        }
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        /* هيدر مصغر وأنيق بلون أسود */
+        header {
+            background: linear-gradient(135deg, #2d3436, #1e272e);
+            color: var(--white);
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 2px;
+        }
+        header p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+        .search-container {
+            margin-top: 10px;
+            position: relative;
+            display: inline-block;
+            width: 40%;
+            max-width: 300px;
+        }
+        .search-container input {
+            padding: 8px 14px;
+            width: 100%;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            outline: none;
+        }
+
+        /* قائمة الاقتراحات الفورية تحت البحث */
+        #searchSuggestions {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 100%;
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 999;
+            max-height: 200px;
+            overflow-y: auto;
+            text-align: right;
+            display: none;
+            margin-top: 5px;
+            border: 1px solid #eee;
+        }
+        .suggestion-item {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            color: var(--dark);
+            cursor: pointer;
+            border-bottom: 1px solid #f8f9fa;
+            transition: 0.2s;
+        }
+        .suggestion-item:hover {
+            background: #f1f2f6;
+            color: var(--primary);
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        /* نافذة اختيار الدولة أول دخول الزائر */
+        .country-modal {
+            display: flex;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            backdrop-filter: blur(4px);
+        }
+        .country-modal-content {
+            background: var(--white);
+            padding: 30px;
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .country-modal-content select {
+            width: 100%;
+            padding: 10px;
+            margin: 15px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        /* شريط اختيار وتغيير الدولة بوضوح فوق آراء الزوار */
+        .country-banner-top {
+            background: var(--white);
+            border: 1px solid #eaeaea;
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+        .country-banner-top p {
+            font-size: 0.95rem;
+            color: #444;
+            font-weight: bold;
+        }
+        .country-change-btn {
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 6px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+        .country-change-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* شريط التقييمات المصغر الأنيق */
+        .reviews-bar-top {
+            background: var(--white);
+            border: 1px solid #eaeaea;
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+        .reviews-bar-top p {
+            font-size: 0.95rem;
+            color: #555;
+        }
+        .review-mini-btn {
+            background: var(--secondary);
+            color: var(--white);
+            border: none;
+            padding: 6px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+        .review-mini-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* شريط التنويه الثابت تحت آراء الزوار */
+        .announcement-banner {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            padding: 12px 18px;
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            display: none;
+            width: 100%;
+            margin-bottom: 25px;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        /* شريط الأقسام */
+        .sections-nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        .section-btn {
+            background: var(--white);
+            border: 1px solid #ddd;
+            color: #555;
+            padding: 8px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .section-btn.active, .section-btn:hover {
+            background: var(--secondary);
+            color: var(--white);
+            border-color: var(--secondary);
+        }
+
+        /* شبكة المنشورات (كل منشورين جنب بعض) */
+        .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        @media (max-width: 600px) {
+            .posts-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+        }
+
+        .post-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #eee;
+            position: relative;
+        }
+        .post-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+        }
+        .post-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: contain;
+            background-color: #f8f9fa;
+        }
+        .post-card-content {
+            padding: 12px;
+        }
+        .post-card h3 {
+            margin-bottom: 6px;
+            color: var(--primary);
+            font-size: 1rem;
+        }
+        .post-card p {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        /* زر التعديل السريع على كرت المنشور (يظهر للأدمن فقط) */
+        .quick-edit-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            z-index: 10;
+            display: none;
+        }
+        .quick-edit-btn:hover {
+            background: var(--primary);
+        }
+
+        /* تذييل الصفحة (Footer) وزر تواصل معنا */
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            margin-top: 50px;
+            background: var(--white);
+            border-top: 1px solid #eee;
+        }
+        .contact-btn {
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 10px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
+            transition: 0.2s;
+        }
+        .contact-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+        /* النوافذ المنبثقة (Modals) */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(3px);
+        }
+        .modal-content {
+            background: var(--white);
+            padding: 25px;
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 450px;
+            max-height: 85vh;
+            overflow-y: auto;
+            text-align: right;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .modal-content input, .modal-content textarea, .modal-content select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .btn {
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.95rem;
+            transition: 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-danger {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .btn-danger:hover { opacity: 0.8; }
+
+        /* لوحة الأدمن */
+        #admin-panel {
+            display: none;
+            background: var(--white);
+            padding: 25px;
+            margin-top: 40px;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid #eee;
+        }
+        .admin-section {
+            margin-bottom: 25px;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 20px;
+        }
+        .admin-section h3 {
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table, th, td {
+            border: 1px solid #eee;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+        th { background: #f8f9fa; color: #444; }
+
+        /* الزر المخفي المكبر أسفل اليسار */
+        #secret-trigger {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 70px;
+            height: 70px;
+            cursor: pointer;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- نافذة اختيار الدولة أول دخول الزائر -->
+    <div class="country-modal" id="countryModal" style="display:none;">
+        <div class="country-modal-content">
+            <h2 style="color:var(--primary); margin-bottom: 10px;">أهلاً بك في موقع انبسط 😄</h2>
+            <p style="color: #666; font-size: 0.9rem;">اختر دولتك لعرض المحتوى المخصص لك:</p>
+            <select id="userCountrySelect">
+                <option value="الأردن" selected>الأردن</option>
+                <option value="فلسطين">فلسطين</option>
+                <option value="الإمارات">الإمارات</option>
+                <option value="السعودية">السعودية</option>
+                <option value="مصر">مصر</option>
+                <option value="الكويت">الكويت</option>
+                <option value="قطر">قطر</option>
+                <option value="البحرين">البحرين</option>
+                <option value="عمان">عمان</option>
+                <option value="العراق">العراق</option>
+                <option value="سوريا">سوريا</option>
+                <option value="لبنان">لبنان</option>
+                <option value="اليمن">اليمن</option>
+                <option value="المغرب">المغرب</option>
+                <option value="الجزائر">الجزائر</option>
+                <option value="تونس">تونس</option>
+                <option value="ليبيا">ليبيا</option>
+                <option value="السودان">السودان</option>
+                <option value="موريتانيا">موريتانيا</option>
+                <option value="الصومال">الصومال</option>
+                <option value="جيبوتي">جيبوتي</option>
+                <option value="جزر القمر">جزر القمر</option>
+            </select>
+            <button class="btn" style="width:100%;" onclick="saveUserCountry()">دخول للموقع</button>
+        </div>
+    </div>
+
+    <header>
+        <h1>موقع انبسط 😄</h1>
+        <p>اكتشف، اطلب، وانبسط!</p>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="ابحث عما تريد..." oninput="filterPosts()" autocomplete="off">
+            <div id="searchSuggestions"></div>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- شريط الدولة الحالية -->
+        <div class="country-banner-top">
+            <p>🌍 الدولة الحالية: <span id="currentCountryDisplay" style="color:var(--primary);"></span></p>
+            <button class="country-change-btn" onclick="changeUserCountry()">تغيير الدولة</button>
+        </div>
+
+        <!-- شريط التقييمات المصغر الأنيق -->
+        <div class="reviews-bar-top">
+            <p>⭐ آراء الزوار وتجاربهم الممتعة معنا</p>
+            <button class="review-mini-btn" onclick="openReviewsModal()">عرض وإضافة تقييم</button>
+        </div>
+
+        <!-- شريط التنويه الثابت تحت آراء الزوار تماماً -->
+        <div class="announcement-banner" id="announcementBanner">
+            📢 <span id="announcementTextDisplay"></span>
+        </div>
+
+        <!-- الأقسام المتغيرة -->
+        <div class="sections-nav" id="sectionsNav"></div>
+
+        <!-- شبكة المنشورات للزوار -->
+        <div class="posts-grid" id="postsGrid"></div>
+
+        <!-- لوحة التحكم الخاصة بالادمن -->
+        <div id="admin-panel">
+            <h2>لوحة تحكم الأدمن 🛠️</h2>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+                <button class="btn" onclick="openAdminOrdersModal()" style="background:#2ed573;">📥 طلبات الزوار (<span id="adminOrderCount">0</span>)</button>
+                <button class="btn" onclick="openAdminMessagesModal()" style="background:#0984e3;">📬 رسائل تواصل معنا (<span id="adminMsgCount">0</span>)</button>
+                <button class="btn" onclick="openAdminVisitorsModal()" style="background:#ffa502;">👥 عداد الزوار الحقيقي (<span id="adminVisitorCount">0</span>)</button>
+                <button class="btn" onclick="logoutAdmin()" style="background:#636e72;">تسجيل خروج الأدمن</button>
+            </div>
+            
+            <!-- أقسام الإدارة المتقدمة (تظهر فقط لكلمة السر ooddaayy) -->
+            <div id="fullAdminSectionsContainer">
+                <!-- إدارة التنويه العام -->
+                <div class="admin-section" style="margin-top:20px;">
+                    <h3>إدارة التنويه العام الثابت 📢</h3>
+                    <textarea id="adminAnnouncementInput" placeholder="اكتب نص التنويه الثابت..." style="width:100%; padding:8px; margin:5px 0;"></textarea>
+                    <div style="display:flex; gap:10px; margin-top:5px;">
+                        <button class="btn" onclick="saveAnnouncement()">حفظ ونشر التنويه</button>
+                        <button class="btn-danger" onclick="deleteAnnouncement()">مسح التنويه</button>
+                    </div>
+                </div>
+
+                <!-- إدارة الأقسام -->
+                <div class="admin-section">
+                    <h3>إدارة الأقسام (تتحدث وتتغير فوراً لجميع الدول)</h3>
+                    <div style="display:flex; gap:10px; margin:10px 0;">
+                        <input type="text" id="newSectionName" placeholder="اسم القسم الجديد" style="padding:8px; flex:1; border:1px solid #ddd; border-radius:8px;">
+                        <button class="btn" onclick="addSection()">إضافة قسم</button>
+                    </div>
+                    <div id="adminSectionsList" style="max-height: 150px; overflow-y: auto; margin-top: 10px;"></div>
+                </div>
+
+                <div class="admin-section">
+                    <h3>إضافة منشور جديد</h3>
+                    <input type="text" id="postTitle" placeholder="عنوان المنشور" style="width:100%; padding:8px; margin:5px 0;">
+                    
+                    <label style="font-size: 0.9rem; color:#555;">اختر القسم:</label>
+                    <select id="postSection" style="width:100%; padding:8px; margin:5px 0;"></select>
+
+                    <label style="font-size: 0.9rem; color:#555;">اختر الدولة المخصصة:</label>
+                    <select id="postCountry" style="width:100%; padding:8px; margin:5px 0;">
+                        <option value="الكل">جميع الدول العربية</option>
+                        <option value="الأردن">الأردن</option>
+                        <option value="فلسطين">فلسطين</option>
+                        <option value="الإمارات">الإمارات</option>
+                        <option value="السعودية">السعودية</option>
+                        <option value="مصر">مصر</option>
+                        <option value="الكويت">الكويت</option>
+                        <option value="قطر">قطر</option>
+                        <option value="البحرين">البحرين</option>
+                        <option value="عمان">عمان</option>
+                        <option value="العراق">العراق</option>
+                        <option value="سوريا">سوريا</option>
+                        <option value="لبنان">لبنان</option>
+                        <option value="اليمن">اليمن</option>
+                        <option value="المغرب">المغرب</option>
+                        <option value="الجزائر">الجزائر</option>
+                        <option value="تونس">تونس</option>
+                        <option value="ليبيا">ليبيا</option>
+                        <option value="السودان">السودان</option>
+                        <option value="موريتانيا">موريتانيا</option>
+                        <option value="الصومال">الصومال</option>
+                        <option value="جيبوتي">جيبوتي</option>
+                        <option value="جزر القمر">جزر القمر</option>
+                    </select>
+
+                    <textarea id="postDesc" placeholder="تفاصيل المنشور" style="width:100%; padding:8px; margin:5px 0;"></textarea>
+                    
+                    <!-- اختيار طريقة التفاعل للمنشور -->
+                    <label style="font-size: 0.9rem; color:#555; font-weight:bold;">طريقة التفاعل لهذا المنشور (ماذا يظهر للزائر؟):</label>
+                    <select id="postInteractionType" style="width:100%; padding:8px; margin:5px 0;">
+                        <option value="link">رابط (يظهر الرابط الذي يحدده الأدمن مباشرة للزائر)</option>
+                        <option value="details">اسمك، رقمك مع رمز الدولة، والتفاصيل</option>
+                    </select>
+
+                    <!-- الرابط أو الرد الآلي -->
+                    <label style="font-size: 0.9rem; color:#555; font-weight:bold;" id="postAutoReplyLabel">الرابط المستهدف (أو الرد الآلي):</label>
+                    <input type="text" id="postAutoReplyValue" placeholder="أدخل الرابط أو نص الرسالة هنا..." style="width:100%; padding:8px; margin:5px 0;">
+
+                    <input type="file" id="postImage" accept="image/*" style="margin:5px 0;">
+                    <br>
+                    <button class="btn" onclick="addNewPost()">نشر المنشور</button>
+                </div>
+
+                <!-- إدارة المنشورات الحالية (لتعديلها أو مسحها) -->
+                <div class="admin-section">
+                    <h3>إدارة المنشورات المنشورة</h3>
+                    <div id="adminPostsList" style="max-height: 250px; overflow-y: auto; margin-top: 10px;"></div>
+                </div>
+
+                <div class="admin-section">
+                    <h3>التقييمات (المعلقة والمعتمدة)</h3>
+                    <div id="allReviewsAdminList" style="max-height: 200px; overflow-y: auto;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تعديل المنشور -->
+    <div class="modal" id="editPostModal">
+        <div class="modal-content">
+            <h2 style="color:var(--primary); text-align:center; margin-bottom:15px;">تعديل المنشور ✏️</h2>
+            <input type="hidden" id="editPostDocId">
+            
+            <label style="font-size: 0.9rem; color:#555;">عنوان المنشور:</label>
+            <input type="text" id="editPostTitle" placeholder="العنوان">
+
+            <label style="font-size: 0.9rem; color:#555;">القسم:</label>
+            <select id="editPostSection"></select>
+
+            <label style="font-size: 0.9rem; color:#555;">الدولة:</label>
+            <select id="editPostCountry">
+                <option value="الكل">جميع الدول العربية</option>
+                <option value="الأردن">الأردن</option>
+                <option value="فلسطين">فلسطين</option>
+                <option value="الإمارات">الإمارات</option>
+                <option value="السعودية">السعودية</option>
+                <option value="مصر">مصر</option>
+                <option value="الكويت">الكويت</option>
+                <option value="قطر">قطر</option>
+                <option value="البحرين">البحرين</option>
+                <option value="عمان">عمان</option>
+                <option value="العراق">العراق</option>
+                <option value="سوريا">سوريا</option>
+                <option value="لبنان">لبنان</option>
+                <option value="اليمن">اليمن</option>
+                <option value="المغرب">المغرب</option>
+                <option value="الجزائر">الجزائر</option>
+                <option value="تونس">تونس</option>
+                <option value="ليبيا">ليبيا</option>
+                <option value="السودان">السودان</option>
+                <option value="موريتانيا">موريتانيا</option>
+                <option value="الصومال">الصومال</option>
+                <option value="جيبوتي">جيبوتي</option>
+                <option value="جزر القمر">جزر القمر</option>
+            </select>
+
+            <label style="font-size: 0.9rem; color:#555;">التفاصيل:</label>
+            <textarea id="editPostDesc" placeholder="التفاصيل"></textarea>
+
+            <label style="font-size: 0.9rem; color:#555; font-weight:bold;">طريقة التفاعل لهذا المنشور:</label>
+            <select id="editPostInteractionType" style="width:100%; padding:8px; margin:5px 0;">
+                <option value="link">رابط (يظهر الرابط الذي يحدده الأدمن مباشرة للزائر)</option>
+                <option value="details">اسمك، رقمك مع رمز الدولة، والتفاصيل</option>
+            </select>
+
+            <label style="font-size: 0.9rem; color:#555; font-weight:bold;">الرابط المستهدف أو الرد الآلي:</label>
+            <input type="text" id="editPostAutoReplyValue" placeholder="رابط التحويل أو نص الرسالة..." style="width:100%; padding:8px; margin:5px 0;">
+
+            <label style="font-size: 0.9rem; color:#555;">تغيير الصورة (اختياري):</label>
+            <input type="file" id="editPostImage" accept="image/*" style="margin:5px 0;">
+
+            <div style="text-align: center; margin-top: 15px;">
+                <button class="btn" style="width:100%;" onclick="saveEditedPost()">حفظ التعديلات</button>
+                <br><br>
+                <button onclick="closeModal('editPostModal')" style="background:none; border:none; color:gray; cursor:pointer; font-weight:bold; font-size:0.9rem;">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- تذييل الصفحة (Footer) مع زر تواصل معنا -->
+    <footer>
+        <p style="margin-bottom: 12px; color: #666; font-size: 0.9rem;">جميع الحقوق محفوظة © موقع انبسط</p>
+        <button class="contact-btn" onclick="openContactModal()">تواصل معنا</button>
+    </footer>
+
+    <!-- نافذة عرض وإضافة التقييمات -->
+    <div class="modal" id="reviewModal">
+        <div class="modal-content">
+            <h2 style="color:var(--primary); text-align:center; margin-bottom:15px;">آراء وتعليقات الزوار</h2>
+            
+            <div id="approvedReviewsList" style="max-height: 180px; overflow-y: auto; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;"></div>
+
+            <h3 style="margin-bottom: 8px; font-size:1rem;">أضف تقييمك لموقعنا ⭐</h3>
+            <input type="text" id="reviewerName" placeholder="اسمك الكريم">
+            <textarea id="reviewText" placeholder="اكتب تقييمك هنا..."></textarea>
+            <div style="text-align: center; margin-top: 10px;">
+                <button class="btn" style="width:100%;" onclick="submitReview()">إرسال التقييم للموافقة</button>
+                <br><br>
+                <button onclick="closeModal('reviewModal')" style="background:none; border:none; color:gray; cursor:pointer; font-weight:bold; font-size:0.9rem;">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تفاصيل المنشور والطلب -->
+    <div class="details-modal modal" id="detailsModal">
+        <div class="details-content modal-content" id="detailsContent" style="display:block;"></div>
+    </div>
+
+    <!-- نافذة تواصل معنا (للزوّار) -->
+    <div class="modal" id="contactModal">
+        <div class="modal-content">
+            <h2 style="color:var(--primary); text-align:center; margin-bottom:15px;">تواصل معنا ✉️</h2>
+            <p style="text-align:center; color:#666; font-size:0.9rem; margin-bottom:10px;">اكتب طلبك بالتفصيل وسنتواصل معك قريباً</p>
+            <input type="text" id="contactName" placeholder="اسمك الكريم">
+            <input type="text" id="contactPhone" placeholder="رقم الهاتف (مع رمز الدولة)">
+            <textarea id="contactMessage" placeholder="اكتب طلبك التفصيلي أو رسالتك هنا..."></textarea>
+            <div style="text-align: center; margin-top: 10px;">
+                <button class="btn" style="width:100%;" onclick="submitContactMessage()">إرسال الرسالة</button>
+                <br><br>
+                <button onclick="closeModal('contactModal')" style="background:none; border:none; color:gray; cursor:pointer; font-weight:bold; font-size:0.9rem;">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة طلبات الزوار المنبثقة للأدمن -->
+    <div class="modal" id="adminOrdersModal">
+        <div class="modal-content" style="max-width: 750px;">
+            <h2 style="color:var(--primary); text-align:center; margin-bottom:15px;">طلبات الزوار المهتمين 📥</h2>
+            <div style="max-height: 350px; overflow-y: auto; margin-bottom: 15px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>المنشور</th>
+                            <th>البيانات المدخلة من الزائر</th>
+                            <th>الحالة</th>
+                            <th>الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminOrdersTable"></tbody>
+                </table>
+            </div>
+            <div style="text-align: center;">
+                <button onclick="closeModal('adminOrdersModal')" style="background:none; border:none; color:gray; cursor:pointer; font-weight:bold; font-size:0.9rem;">إغلاق النافذة</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة صندوق رسائل الأدمن المنبثقة -->
+    <div class="modal" id="adminMessagesModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <h2 style="color:var(--primary); text-align:center; margin-bottom:15px;">صندوق رسائل "تواصل معنا" 📬</h2>
+            <div id="adminMessagesList" style="max-height: 350px; overflow-y: auto; margin-bottom: 15px;"></div>
+            <div style="text-align: center;">
+                <button onclick="closeModal('adminMessagesModal')" style="background:none; border:none; color:gray; cursor:pointer; font-weight:bold; font-size:0.9rem;">إغلاق النافذة</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تفاصيل الزوار الحقيقيين للأدمن -->
+    <div class="modal" id="adminVisitorsModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <h2 style="color:var(--primary); text-align:center; margin-bottom:15px;">قائمة الأجهزة الحقيقية المتصلة (الزوار) 👥</h2>
+            <div style="margin-bottom:10px; font-weight:bold; font-size:0.95rem; text-align:center; color:#555;">إجمالي عدد الزوار الفريدين الحقيقيين: <span id="realVisitorCountDisplay" style="color:var(--primary);">0</span></div>
+            <div style="max-height: 300px; overflow-y: auto; margin-bottom: 15px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>رقم الجهاز (معرف الجلسة)</th>
+                            <th>تاريخ وزمن أول دخول</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminVisitorsTable"></tbody>
+                </table>
+            </div>
+            <div style="text-align: center;">
+                <button onclick="closeModal('adminVisitorsModal')" style="background:none; border:none; color:gray; cursor:pointer; font-weight:bold; font-size:0.9rem;">إغلاق النافذة</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- الزر المخفي المكبر أسفل اليسار -->
+    <div id="secret-trigger" onclick="handleSecretClick()" title="مخفي"></div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-analytics.js";
+        import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, updateDoc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCX3SyPUhfyzjDv9zZqekow_5lvYgarTYM",
+            authDomain: "maw123-f1ce5.firebaseapp.com",
+            projectId: "maw123-f1ce5",
+            storageBucket: "maw123-f1ce5.firebasestorage.app",
+            messagingSenderId: "1074280499438",
+            appId: "1:1074280499438:web:158420c5669468df660bff",
+            measurementId: "G-8H6T1ZEJ9B"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+
+        // متغيرات البيانات السحابية
+        window.sections = ['1', '2', '3', '4', 'فيديو', 'طبيعي'];
+        window.posts = [];
+        window.reviews = [];
+        window.orders = [];
+        window.messages = [];
+        window.visitors = [];
+        window.siteAnnouncement = '';
+        window.currentSectionFilter = 'الكل';
+        window.userCountry = localStorage.getItem('userCountry');
+        window.activeModalsStack = [];
+        window.isAdminLoggedIn = false;
+
+        function registerVisitorDevice() {
+            let visitorId = localStorage.getItem('uniqueVisitorId');
+            if (!visitorId) {
+                visitorId = 'dev_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+                localStorage.setItem('uniqueVisitorId', visitorId);
+            }
+            return visitorId;
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            if(!window.userCountry) {
+                window.userCountry = 'الأردن';
+                localStorage.setItem('userCountry', 'الأردن');
+                document.getElementById('countryModal').style.display = 'none';
+                document.getElementById('currentCountryDisplay').innerText = window.userCountry;
+            } else {
+                document.getElementById('countryModal').style.display = 'none';
+                document.getElementById('currentCountryDisplay').innerText = window.userCountry;
+            }
+
+            let grid = document.getElementById('postsGrid');
+            if(grid) {
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#777; padding:40px; font-size:1.1rem; font-weight:bold;">الرجاء الانتظار جاري التحميل...</p>`;
+            }
+
+            history.replaceState({ page: "main" }, "");
+
+            await registerOrUpdateVisitorSession();
+            initRealtimeListeners();
+        });
+
+        function initRealtimeListeners() {
+            onSnapshot(doc(db, "settings", "main"), (docSnap) => {
+                if(docSnap.exists()) {
+                    let data = docSnap.data();
+                    let newAnnouncement = data.announcement || '';
+                    
+                    if(window.siteAnnouncement !== newAnnouncement) {
+                        window.siteAnnouncement = newAnnouncement;
+                        renderAnnouncement();
+                    }
+
+                    if(data.sections && JSON.stringify(window.sections) !== JSON.stringify(data.sections)) {
+                        window.sections = data.sections;
+                        renderSectionsNav();
+                    }
+                    loadAdminData();
+                }
+            });
+
+            onSnapshot(collection(db, "posts"), (snapshot) => {
+                window.posts = [];
+                snapshot.forEach(d => window.posts.push({ docId: d.id, ...d.data() }));
+                renderPosts();
+                loadAdminData();
+            });
+
+            onSnapshot(collection(db, "reviews"), (snapshot) => {
+                window.reviews = [];
+                snapshot.forEach(d => window.reviews.push({ docId: d.id, ...d.data() }));
+                loadAdminData();
+            });
+
+            onSnapshot(collection(db, "orders"), (snapshot) => {
+                window.orders = [];
+                snapshot.forEach(d => window.orders.push({ docId: d.id, ...d.data() }));
+                loadAdminData();
+            });
+
+            onSnapshot(collection(db, "messages"), (snapshot) => {
+                window.messages = [];
+                snapshot.forEach(d => window.messages.push({ docId: d.id, ...d.data() }));
+                loadAdminData();
+            });
+
+            onSnapshot(collection(db, "visitors"), (snapshot) => {
+                window.visitors = [];
+                snapshot.forEach(d => window.visitors.push(d.data()));
+                loadAdminData();
+            });
+        }
+
+        async function registerOrUpdateVisitorSession() {
+            try {
+                let vId = registerVisitorDevice();
+                let vDocRef = doc(db, "visitors", vId);
+                let vSnap = await getDoc(vDocRef);
+                if (!vSnap.exists()) {
+                    await setDoc(vDocRef, { visitorId: vId, timestamp: new Date().toLocaleString('ar-JO') });
+                }
+            } catch (e) {
+                console.error("خطأ في تسجيل الزائر:", e);
+            }
+        }
+
+        window.openModal = function(modalId) {
+            let modal = document.getElementById(modalId);
+            if(modal && modal.style.display !== 'flex') {
+                modal.style.display = 'flex';
+                window.activeModalsStack.push(modalId);
+                history.pushState({ modalOpen: modalId }, "");
+            }
+        }
+
+        window.closeModal = function(modalId) {
+            let modal = document.getElementById(modalId);
+            if(modal && modal.style.display === 'flex') {
+                modal.style.display = 'none';
+                window.activeModalsStack = window.activeModalsStack.filter(id => id !== modalId);
+                if(history.state && history.state.modalOpen === modalId) {
+                    history.back();
+                }
+            }
+        }
+
+        window.addEventListener('popstate', function(event) {
+            if(window.activeModalsStack.length > 0) {
+                let lastModalId = window.activeModalsStack.pop();
+                let modal = document.getElementById(lastModalId);
+                if(modal) {
+                    modal.style.display = 'none';
+                }
+                history.pushState({ page: "main" }, "");
+            }
+        });
+
+        window.renderAnnouncement = function() {
+            let banner = document.getElementById('announcementBanner');
+            let textDisplay = document.getElementById('announcementTextDisplay');
+            let adminInput = document.getElementById('adminAnnouncementInput');
+            
+            if(adminInput && adminInput.value !== window.siteAnnouncement) {
+                adminInput.value = window.siteAnnouncement;
+            }
+
+            if(window.siteAnnouncement && window.siteAnnouncement.trim() !== '') {
+                textDisplay.innerText = window.siteAnnouncement;
+                banner.style.display = 'block';
+            } else {
+                banner.style.display = 'none';
+            }
+        }
+
+        window.saveAnnouncement = async function() {
+            let text = document.getElementById('adminAnnouncementInput').value.trim();
+            window.siteAnnouncement = text;
+            await setDoc(doc(db, "settings", "main"), { announcement: text, sections: window.sections }, { merge: true });
+            window.renderAnnouncement();
+            alert('تم حفظ ونشر التنويه الثابت سحابياً بنجاح!');
+        }
+
+        window.deleteAnnouncement = async function() {
+            if(confirm('هل أنت متأكد من مسح التنويه العام؟')) {
+                window.siteAnnouncement = '';
+                await setDoc(doc(db, "settings", "main"), { announcement: '', sections: window.sections }, { merge: true });
+                window.renderAnnouncement();
+                alert('تم مسح التنويه بنجاح.');
+            }
+        }
+
+        window.saveUserCountry = function() {
+            let select = document.getElementById('userCountrySelect');
+            window.userCountry = select.value;
+            localStorage.setItem('userCountry', window.userCountry);
+            window.closeModal('countryModal');
+            document.getElementById('currentCountryDisplay').innerText = window.userCountry;
+            window.renderPosts();
+        }
+
+        window.changeUserCountry = function() {
+            window.openModal('countryModal');
+        }
+
+        window.renderSectionsNav = function() {
+            let nav = document.getElementById('sectionsNav');
+            nav.innerHTML = `<button class="section-btn ${window.currentSectionFilter === 'الكل' ? 'active' : ''}" onclick="changeSection('الكل')">الكل</button>`;
+            
+            window.sections.forEach(sec => {
+                nav.innerHTML += `<button class="section-btn ${window.currentSectionFilter === sec ? 'active' : ''}" onclick="changeSection('${sec}')">${sec}</button>`;
+            });
+
+            let postSectionSelect = document.getElementById('postSection');
+            if(postSectionSelect) {
+                postSectionSelect.innerHTML = '';
+                window.sections.forEach(sec => {
+                    postSectionSelect.innerHTML += `<option value="${sec}">${sec}</option>`;
+                });
+            }
+
+            let editPostSectionSelect = document.getElementById('editPostSection');
+            if(editPostSectionSelect) {
+                editPostSectionSelect.innerHTML = '';
+                window.sections.forEach(sec => {
+                    editPostSectionSelect.innerHTML += `<option value="${sec}">${sec}</option>`;
+                });
+            }
+        }
+
+        window.openReviewsModal = function() {
+            let listDiv = document.getElementById('approvedReviewsList');
+            listDiv.innerHTML = '';
+            
+            let approved = window.reviews.filter(r => r.status === 'approved');
+            if(approved.length === 0) {
+                listDiv.innerHTML = '<p style="text-align:center; color:gray; font-size:0.9rem;">لا توجد تقييمات معتمدة بعد.</p>';
+            } else {
+                approved.forEach(rev => {
+                    listDiv.innerHTML += `
+                        <div style="background:#f8f9fa; padding:8px 12px; margin-bottom:8px; border-radius:8px; border-right: 3px solid var(--secondary);">
+                            <strong style="font-size:0.9rem;">⭐ ${rev.name}:</strong>
+                            <p style="margin-top:3px; color:#555; font-size:0.85rem;">${rev.text}</p>
+                        </div>
+                    `;
+                });
+            }
+            window.openModal('reviewModal');
+        }
+
+        window.submitReview = async function() {
+            let name = document.getElementById('reviewerName').value;
+            let text = document.getElementById('reviewText').value;
+            if(!name || !text) {
+                alert('الرجاء تعبئة الاسم والتقييم');
+                return;
+            }
+            let newRev = { name, text, status: 'pending' };
+            await addDoc(collection(db, "reviews"), newRev);
+            alert('تم إرسال تقييمك بنجاح، سيتم عرضه بعد موافقة الإدارة.');
+            document.getElementById('reviewerName').value = '';
+            document.getElementById('reviewText').value = '';
+            window.closeModal('reviewModal');
+        }
+
+        window.openContactModal = function() {
+            window.openModal('contactModal');
+        }
+
+        window.submitContactMessage = async function() {
+            let name = document.getElementById('contactName').value;
+            let phone = document.getElementById('contactPhone').value;
+            let msg = document.getElementById('contactMessage').value;
+
+            if(!name || !phone || !msg) {
+                alert('الرجاء تعبئة جميع الحقول (الاسم، الرقم، الرسالة)');
+                return;
+            }
+
+            let newMsg = { id: Date.now(), name, phone, msg };
+            await addDoc(collection(db, "messages"), newMsg);
+            alert('تم إرسال رسالتك بنجاح وسيتم الرد عليك قريباً!');
+            document.getElementById('contactName').value = '';
+            document.getElementById('contactPhone').value = '';
+            document.getElementById('contactMessage').value = '';
+            window.closeModal('contactModal');
+        }
+
+        window.openAdminOrdersModal = function() {
+            window.openModal('adminOrdersModal');
+        }
+
+        window.openAdminMessagesModal = function() {
+            window.openModal('adminMessagesModal');
+            window.loadAdminMessagesList();
+        }
+
+        window.openAdminVisitorsModal = function() {
+            window.openModal('adminVisitorsModal');
+            window.loadAdminVisitorsList();
+        }
+
+        window.loadAdminVisitorsList = function() {
+            let list = document.getElementById('adminVisitorsTable');
+            let countDisplay = document.getElementById('realVisitorCountDisplay');
+            if(countDisplay) countDisplay.innerText = window.visitors.length;
+            list.innerHTML = '';
+            if(window.visitors.length === 0) {
+                list.innerHTML = '<tr><td colspan="2" style="color:#777;">لا توجد بيانات زوار حتى الآن.</td></tr>';
+                return;
+            }
+            window.visitors.forEach((v, index) => {
+                list.innerHTML += `
+                    <tr>
+                        <td><strong>زائر رقم (${index + 1}):</strong> <span style="font-family:monospace; color:#0984e3;">${v.visitorId}</span></td>
+                        <td>${v.timestamp || 'غير متوفر'}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        window.loadAdminMessagesList = function() {
+            let list = document.getElementById('adminMessagesList');
+            list.innerHTML = '';
+            if(window.messages.length === 0) {
+                list.innerHTML = '<p style="text-align:center; color:#777; padding:15px;">لا توجد رسائل تواصل حتى الآن.</p>';
+                return;
+            }
+            window.messages.forEach((msg) => {
+                list.innerHTML += `
+                    <div style="background:#f8f9fa; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #eee; position:relative;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                            <strong style="color:var(--dark); font-size:0.95rem;">👤 ${msg.name}</strong>
+                            <button class="btn-danger" style="padding:3px 8px; font-size:0.75rem;" onclick="deleteMessage('${msg.docId}')">مسح الرسالة</button>
+                        </div>
+                        <p style="font-size:0.85rem; color:#0984e3; margin-bottom:5px;">📞 <a href="https://wa.me/${msg.phone.replace(/[^0-9]/g, '')}" target="_blank" style="color:#0984e3; text-decoration:none;">${msg.phone}</a></p>
+                        <p style="font-size:0.9rem; color:#555; background:#fff; padding:8px; border-radius:6px; border:1px solid #f0f0f0;">💬 ${msg.msg}</p>
+                    </div>
+                `;
+            });
+        }
+
+        window.deleteMessage = async function(docId) {
+            if(confirm('هل أنت متأكد من مسح هذه الرسالة؟')) {
+                await deleteDoc(doc(db, "messages", docId));
+            }
+        }
+
+        window.renderPosts = function() {
+            let grid = document.getElementById('postsGrid');
+            grid.innerHTML = '';
+            let searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            let filtered = window.posts.filter(p => {
+                let matchesCountry = (p.country === 'الكل' || p.country === window.userCountry);
+                let matchesSection = (window.currentSectionFilter === 'الكل' || p.section === window.currentSectionFilter);
+                let matchesSearch = p.title.toLowerCase().includes(searchTerm) || p.desc.toLowerCase().includes(searchTerm);
+                return matchesCountry && matchesSection && matchesSearch;
+            });
+
+            let suggestionsBox = document.getElementById('searchSuggestions');
+            if(searchTerm !== '') {
+                let matchedSuggestions = window.posts.filter(p => (p.country === 'الكل' || p.country === window.userCountry) && (p.title.toLowerCase().includes(searchTerm) || p.desc.toLowerCase().includes(searchTerm)));
+                if(matchedSuggestions.length > 0) {
+                    suggestionsBox.innerHTML = '';
+                    matchedSuggestions.forEach(item => {
+                        suggestionsBox.innerHTML += `<div class="suggestion-item" onclick="selectSuggestion('${item.docId}')">📌 ${item.title}</div>`;
+                    });
+                    suggestionsBox.style.display = 'block';
+                } else {
+                    suggestionsBox.style.display = 'none';
+                }
+            } else {
+                suggestionsBox.style.display = 'none';
+            }
+
+            if(filtered.length === 0) {
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#777; padding:20px;">لا توجد منشورات متاحة حالياً لدولة (${window.userCountry}).</p>`;
+                return;
+            }
+
+            filtered.forEach(post => {
+                let editBtnDisplay = window.isAdminLoggedIn ? 'block' : 'none';
+                grid.innerHTML += `
+                    <div class="post-card" onclick="openPostDetails('${post.docId}')">
+                        <button class="quick-edit-btn" style="display: ${editBtnDisplay};" onclick="event.stopPropagation(); openEditPostModal('${post.docId}')">✏️ تعديل</button>
+                        <img src="${post.image}" alt="صورة المنشور">
+                        <div class="post-card-content">
+                            <span style="font-size:0.75rem; color:var(--secondary); font-weight:bold;">${post.section} | 🌍 ${post.country}</span>
+                            <h3>${post.title}</h3>
+                            <p>${post.desc.substring(0, 50)}...</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        window.selectSuggestion = function(docId) {
+            document.getElementById('searchSuggestions').style.display = 'none';
+            openPostDetails(docId);
+        }
+
+        window.changeSection = function(section) {
+            window.currentSectionFilter = section;
+            window.renderSectionsNav();
+            window.renderPosts();
+        }
+
+        window.filterPosts = function() {
+            window.renderPosts();
+        }
+
+        window.openPostDetails = function(docId) {
+            let post = window.posts.find(p => p.docId === docId);
+            let content = document.getElementById('detailsContent');
+
+            let interactionType = post.interactionType || 'link';
+
+            let formHtml = '';
+            if(interactionType === 'link') {
+                let targetLink = post.autoReplyValue || '#';
+                formHtml = `
+                    <h3 style="margin-bottom:8px; font-size:1rem; text-align:center;">اعمل لقطه لشاشه وراسلنا:</h3>
+                    <div style="text-align:center; margin: 15px 0;">
+                        <a href="${targetLink}" target="_blank" class="btn" style="display:inline-block; text-decoration:none; padding:12px 30px; font-size:1.1rem;">انقر هنا لتواصل معنا على فيس بوك </a>
+                    </div>
+                `;
+            } else {
+                formHtml = `
+                    <h3 style="margin-bottom:8px; font-size:1rem;">مهتم بهذا المنشور؟ اطلب الآن:</h3>
+                    <input type="text" id="orderName" placeholder="اسمك الكريم">
+                    <input type="text" id="orderPhone" placeholder="رقم الهاتف مع رمز الدولة (+9627xxxxxxxx)">
+                    <textarea id="orderDetails" placeholder="التفاصيل..."></textarea>
+                    <button class="btn" style="width:100%; margin-top:5px;" onclick="submitOrder('${post.docId}', '${post.title}', 'details')">إرسال الطلب</button>
+                `;
+            }
+
+            content.innerHTML = `
+                <div style="background-color: #f8f9fa; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: center; align-items: center; overflow: hidden;">
+                    <img src="${post.image}" style="max-width: 100%; max-height: 350px; object-fit: contain;">
+                </div>
+                <h2 style="color:var(--primary); margin-bottom:8px; font-size:1.3rem;">${post.title}</h2>
+                <p style="margin-bottom:15px; font-size:0.9rem; color:#555;">${post.desc}</p>
+                <hr style="margin:12px 0; border:0; border-top:1px solid #eee;">
+                ${formHtml}
+                <br><br>
+                <div style="text-align:center;">
+                    <button onclick="closeModal('detailsModal')" style="background:none; border:none; color:gray; cursor:pointer; font-weight:bold; font-size:0.9rem;">إغلاق</button>
+                </div>
+            `;
+            window.openModal('detailsModal');
+        }
+
+        window.submitOrder = async function(postId, postTitle, type) {
+            let post = window.posts.find(p => p.docId === postId);
+            let newOrd = { id: Date.now(), postTitle, status: 'قيد المعالجة' };
+
+            let name = document.getElementById('orderName').value.trim();
+            let phone = document.getElementById('orderPhone').value.trim();
+            let details = document.getElementById('orderDetails').value.trim();
+            if(!name || !phone || !details) {
+                alert('الرجاء تعبئة جميع الحقول (الاسم، رقم الهاتف، والتفاصيل)');
+                return;
+            }
+            newOrd.name = name;
+            newOrd.phone = phone;
+            newOrd.details = details;
+
+            await addDoc(collection(db, "orders"), newOrd);
+            window.closeModal('detailsModal');
+            alert('تم إرسال طلبك بنجاح! شكراً لك.');
+        }
+
+        let clickCount = 0;
+        window.handleSecretClick = function() {
+            clickCount++;
+            if(clickCount === 3) {
+                clickCount = 0;
+                let pass = prompt('أدخل كلمة سر الأدمن:');
+                let fullAdminContainer = document.getElementById('fullAdminSectionsContainer');
+                
+                if(pass === 'ooddaayy') {
+                    window.isAdminLoggedIn = true;
+                    fullAdminContainer.style.display = 'block';
+                    document.getElementById('admin-panel').style.display = 'block';
+                    renderPosts();
+                    alert('مرحباً بك أيها الأدمن (صلاحيات كاملة)!');
+                    window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
+                } else if(pass === 'عدي11') {
+                    window.isAdminLoggedIn = true;
+                    fullAdminContainer.style.display = 'none';
+                    document.getElementById('admin-panel').style.display = 'block';
+                    renderPosts();
+                    alert('مرحباً بك عدي (طلبات الزوار، الرسائل، والعداد الحقيقي فقط)!');
+                    window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
+                } else if(pass !== null) {
+                    alert('كلمة المرور غير صحيحة!');
+                }
+            }
+        }
+
+        window.logoutAdmin = function() {
+            window.isAdminLoggedIn = false;
+            document.getElementById('admin-panel').style.display = 'none';
+            renderPosts();
+            alert('تم تسجيل خروج الأدمن');
+        }
+
+        window.addSection = async function() {
+            let name = document.getElementById('newSectionName').value.trim();
+            if(!name) {
+                alert('الرجاء إدخال اسم القسم');
+                return;
+            }
+            if(window.sections.includes(name)) {
+                alert('هذا القسم موجود مسبقاً');
+                return;
+            }
+            window.sections.push(name);
+            await setDoc(doc(db, "settings", "main"), { announcement: window.siteAnnouncement, sections: window.sections }, { merge: true });
+            document.getElementById('newSectionName').value = '';
+            alert('تم إضافة القسم بنجاح لجميع الدول والزوار!');
+        }
+
+        window.deleteSection = async function(sec) {
+            if(confirm(`هل أنت متأكد من مسح القسم (${sec}) لجميع الدول؟`)) {
+                window.sections = window.sections.filter(s => s !== sec);
+                await setDoc(doc(db, "settings", "main"), { announcement: window.siteAnnouncement, sections: window.sections }, { merge: true });
+                if(window.currentSectionFilter === sec) window.currentSectionFilter = 'الكل';
+            }
+        }
+
+        window.editSection = async function(oldName) {
+            let newName = prompt('أدخل الاسم الجديد للقسم (سيتم تحديثه لجميع الدول):', oldName);
+            if(newName && newName.trim() !== '' && newName !== oldName) {
+                newName = newName.trim();
+                if(window.sections.includes(newName)) {
+                    alert('هذا الاسم موجود مسبقاً');
+                    return;
+                }
+                let index = window.sections.indexOf(oldName);
+                if(index !== -1) {
+                    window.sections[index] = newName;
+                    await setDoc(doc(db, "settings", "main"), { announcement: window.siteAnnouncement, sections: window.sections }, { merge: true });
+                    alert('تم تحديث وتغيير اسم القسم لجميع الدول بنجاح!');
+                }
+            }
+        }
+
+        window.addNewPost = function() {
+            let title = document.getElementById('postTitle').value;
+            let section = document.getElementById('postSection').value;
+            let country = document.getElementById('postCountry').value;
+            let desc = document.getElementById('postDesc').value;
+            let interactionType = document.getElementById('postInteractionType').value;
+            let autoReplyValue = document.getElementById('postAutoReplyValue').value;
+            let imageInput = document.getElementById('postImage');
+
+            if(!title || !desc) {
+                alert('الرجاء إدخال العنوان والتفاصيل');
+                return;
+            }
+
+            let imageURL = 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500';
+            if(imageInput.files && imageInput.files[0]) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    let img = new Image();
+                    img.src = e.target.result;
+                    img.onload = function() {
+                        let canvas = document.createElement('canvas');
+                        let ctx = canvas.getContext('2d');
+                        let MAX_WIDTH = 600;
+                        let MAX_HEIGHT = 600;
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > height) {
+                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                        } else {
+                            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+                        let compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                        saveNewPostData(title, section, country, desc, interactionType, autoReplyValue, compressedDataUrl);
+                    }
+                }
+                reader.readAsDataURL(imageInput.files[0]);
+            } else {
+                saveNewPostData(title, section, country, desc, interactionType, autoReplyValue, imageURL);
+            }
+        }
+
+        async function saveNewPostData(title, section, country, desc, interactionType, autoReplyValue, image) {
+            try {
+                let newPost = { id: Date.now(), title, section, country, desc, interactionType, autoReplyType: 'text', autoReplyValue, image };
+                await addDoc(collection(db, "posts"), newPost);
+                alert('تم نشر المنشور سحابياً بنجاح وسيظهر فوراً لدى الزوار!');
+                document.getElementById('postTitle').value = '';
+                document.getElementById('postDesc').value = '';
+                document.getElementById('postAutoReplyValue').value = '';
+                document.getElementById('postImage').value = '';
+            } catch (err) {
+                console.error("خطأ أثناء النشر:", err);
+                alert("حدث خطأ أثناء حفظ المنشور، يرجى المحاولة مرة أخرى.");
+            }
+        }
+
+        window.openEditPostModal = function(docId) {
+            let post = window.posts.find(p => p.docId === docId);
+            if(!post) return;
+
+            document.getElementById('editPostDocId').value = post.docId;
+            document.getElementById('editPostTitle').value = post.title;
+            document.getElementById('editPostSection').value = post.section;
+            document.getElementById('editPostCountry').value = post.country;
+            document.getElementById('editPostDesc').value = post.desc;
+            document.getElementById('editPostInteractionType').value = post.interactionType || 'link';
+            document.getElementById('editPostAutoReplyValue').value = post.autoReplyValue || '';
+            document.getElementById('editPostImage').value = '';
+
+            window.openModal('editPostModal');
+        }
+
+        window.saveEditedPost = function() {
+            let docId = document.getElementById('editPostDocId').value;
+            let title = document.getElementById('editPostTitle').value;
+            let section = document.getElementById('editPostSection').value;
+            let country = document.getElementById('editPostCountry').value;
+            let desc = document.getElementById('editPostDesc').value;
+            let interactionType = document.getElementById('editPostInteractionType').value;
+            let autoReplyValue = document.getElementById('editPostAutoReplyValue').value;
+            let imageInput = document.getElementById('editPostImage');
+
+            if(!title || !desc) {
+                alert('الرجاء إدخال العنوان والتفاصيل');
+                return;
+            }
+
+            let post = window.posts.find(p => p.docId === docId);
+            if(!post) return;
+
+            if(imageInput.files && imageInput.files[0]) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    let img = new Image();
+                    img.src = e.target.result;
+                    img.onload = function() {
+                        let canvas = document.createElement('canvas');
+                        let ctx = canvas.getContext('2d');
+                        let MAX_WIDTH = 600;
+                        let MAX_HEIGHT = 600;
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > height) {
+                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                        } else {
+                            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+                        let compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                        executeUpdatePost(docId, title, section, country, desc, interactionType, autoReplyValue, compressedDataUrl);
+                    }
+                }
+                reader.readAsDataURL(imageInput.files[0]);
+            } else {
+                executeUpdatePost(docId, title, section, country, desc, interactionType, autoReplyValue, post.image);
+            }
+        }
+
+        async function executeUpdatePost(docId, title, section, country, desc, interactionType, autoReplyValue, image) {
+            try {
+                let postRef = doc(db, "posts", docId);
+                await updateDoc(postRef, { title, section, country, desc, interactionType, autoReplyValue, image });
+
+                alert('تم تعديل المنشور بنجاح!');
+                window.closeModal('editPostModal');
+            } catch(e) {
+                console.error("خطأ أثناء التعديل:", e);
+                alert("حدث خطأ أثناء تعديل المنشور.");
+            }
+        }
+
+        window.deletePost = async function(docId) {
+            if(confirm('هل أنت متأكد من مسح هذا المنشور؟')) {
+                await deleteDoc(doc(db, "posts", docId));
+            }
+        }
+
+        window.deleteOrder = async function(docId) {
+            if(confirm('هل أنت متأكد من مسح هذا الطلب؟')) {
+                await deleteDoc(doc(db, "orders", docId));
+            }
+        }
+
+        window.updateOrderStatus = async function(docId, status) {
+            await updateDoc(doc(db, "orders", docId), { status: status });
+        }
+
+        window.loadAdminData = function() {
+            let adminOrderCount = document.getElementById('adminOrderCount');
+            if(adminOrderCount) adminOrderCount.innerText = window.orders.length;
+
+            let adminMsgCount = document.getElementById('adminMsgCount');
+            if(adminMsgCount) adminMsgCount.innerText = window.messages.length;
+
+            let adminVisitorCount = document.getElementById('adminVisitorCount');
+            if(adminVisitorCount) adminVisitorCount.innerText = window.visitors.length;
+
+            let adminSectionsList = document.getElementById('adminSectionsList');
+            adminSectionsList.innerHTML = '';
+            window.sections.forEach(sec => {
+                adminSectionsList.innerHTML += `
+                    <div style="background:#f8f9fa; padding:8px 12px; margin:5px 0; border-radius:6px; display:flex; justify-content:space-between; align-items:center; border:1px solid #eee;">
+                        <span style="font-size:0.9rem;"><strong>القسم:</strong> ${sec}</span>
+                        <div>
+                            <button class="btn" style="padding:3px 8px; background:#0984e3; font-size:0.75rem;" onclick="editSection('${sec}')">تعديل</button>
+                            <button class="btn-danger" style="padding:3px 8px; font-size:0.75rem;" onclick="deleteSection('${sec}')">مسح</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            let adminPostsList = document.getElementById('adminPostsList');
+            adminPostsList.innerHTML = '';
+            if(window.posts.length === 0) {
+                adminPostsList.innerHTML = '<p style="color:#777; font-size:0.9rem;">لا توجد منشورات.</p>';
+            } else {
+                window.posts.forEach(post => {
+                    adminPostsList.innerHTML += `
+                        <div style="background:#f8f9fa; padding:8px 12px; margin:5px 0; border-radius:6px; display:flex; justify-content:space-between; align-items:center; border:1px solid #eee;">
+                            <span style="font-size:0.9rem;">${post.title} <span style="color:#777; font-size:0.8rem;">(قسم: ${post.section} | دولة: ${post.country})</span></span>
+                            <div>
+                                <button class="btn" style="padding:3px 8px; background:#0984e3; font-size:0.75rem;" onclick="openEditPostModal('${post.docId}')">تعديل</button>
+                                <button class="btn-danger" style="padding:3px 8px; font-size:0.75rem;" onclick="deletePost('${post.docId}')">مسح</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            let allReviewsList = document.getElementById('allReviewsAdminList');
+            allReviewsList.innerHTML = '';
+            if(window.reviews.length === 0) {
+                allReviewsList.innerHTML = '<p style="color:#777; font-size:0.9rem;">لا توجد تقييمات.</p>';
+            } else {
+                window.reviews.forEach((rev) => {
+                    let statusLabel = rev.status === 'approved' ? '✅ معتمد' : '⏳ معلق';
+                    allReviewsList.innerHTML += `
+                        <div style="background:#f8f9fa; padding:8px 12px; margin:5px 0; border-radius:6px; display:flex; justify-content:space-between; align-items:center; border:1px solid #eee;">
+                            <div style="font-size:0.9rem;"><strong>${rev.name}</strong> <span style="font-size:0.8rem; color:#666;">(${statusLabel})</span>: ${rev.text}</div>
+                            <div>
+                                ${rev.status === 'pending' ? `<button class="btn" style="padding:3px 8px; background:#2ed573; font-size:0.75rem;" onclick="approveReview('${rev.docId}')">موافقة</button>` : ''}
+                                <button class="btn-danger" style="padding:3px 8px; font-size:0.75rem;" onclick="deleteReview('${rev.docId}')">مسح</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            let ordersTable = document.getElementById('adminOrdersTable');
+            ordersTable.innerHTML = '';
+            if(window.orders.length === 0) {
+                ordersTable.innerHTML = '<tr><td colspan="4" style="color:#777;">لا توجد طلبات حتى الآن.</td></tr>';
+            } else {
+                window.orders.forEach((ord) => {
+                    let contentCell = `
+                        <strong>الاسم:</strong> ${ord.name || '-'}<br>
+                        <strong>الهاتف:</strong> <a href="https://wa.me/${(ord.phone || '').replace(/[^0-9]/g, '')}" target="_blank" style="color:#0984e3; text-decoration:none;">${ord.phone || '-'}</a><br>
+                        <strong>التفاصيل:</strong> ${ord.details || '-'}
+                    `;
+
+                    ordersTable.innerHTML += `
+                        <tr>
+                            <td>${ord.postTitle}</td>
+                            <td style="text-align:right; padding:8px;">${contentCell}</td>
+                            <td>
+                                <select onchange="updateOrderStatus('${ord.docId}', this.value)" style="padding:4px; border-radius:4px; font-size:0.85rem;">
+                                    <option value="قيد المعالجة" ${ord.status === 'قيد المعالجة' ? 'selected' : ''}>قيد المعالجة</option>
+                                    <option value="مكتمل" ${ord.status === 'مكتمل' ? 'selected' : ''}>مكتمل</option>
+                                    <option value="ملغي" ${ord.status === 'ملغي' ? 'selected' : ''}>ملغي</option>
+                                </select>
+                            </td>
+                            <td>
+                                <button class="btn-danger" style="padding:3px 8px; font-size:0.75rem;" onclick="deleteOrder('${ord.docId}')">مسح</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        window.approveReview = async function(docId) {
+            await updateDoc(doc(db, "reviews", docId), { status: 'approved' });
+        }
+
+        window.deleteReview = async function(docId) {
+            if(confirm('هل أنت متأكد من مسح هذا التقييم؟')) {
+                await deleteDoc(doc(db, "reviews", docId));
+            }
+        }
+    </script>
+</body>
+</html>
