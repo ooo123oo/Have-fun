@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>موقع </title>
+    <title>موقع</title>
     <style>
         :root {
             --primary: #ff6b6b;
@@ -240,10 +240,10 @@
         }
         .modal-content {
             background: var(--white);
-            padding: 25px;
+            padding: 20px;
             border-radius: var(--radius);
             width: 90%;
-            max-width: 450px;
+            max-width: 420px;
             max-height: 85vh;
             overflow-y: auto;
             text-align: right;
@@ -251,11 +251,11 @@
         }
         .modal-content input, .modal-content textarea, .modal-content select {
             width: 100%;
-            padding: 10px;
-            margin: 8px 0;
+            padding: 8px;
+            margin: 6px 0;
             border: 1px solid #ddd;
             border-radius: 8px;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             outline: none;
         }
         .btn {
@@ -328,7 +328,7 @@
 <body>
 
     <header>
-        <h1>موقع بيع ادوات جنسيه </h1>
+        <h1>موقع بيع ادوات جنسيه</h1>
         <p>ابحث عن منتج !</p>
         <div class="search-container">
             <input type="text" id="searchInput" placeholder="ابحث عما تريد..." oninput="filterPosts()" autocomplete="off">
@@ -414,7 +414,7 @@
 
                 <!-- إدارة التعليقات (المعلقة والمعتمدة) -->
                 <div class="admin-section">
-                    <h3>تعليقات الزوار على المنشورات (المعلقة والمعتمدة)</h3>
+                    <h3>تعليقات المشترين على المنشورات (المعلقة والمعتمدة)</h3>
                     <div id="allCommentsAdminList" style="max-height: 200px; overflow-y: auto;"></div>
                 </div>
             </div>
@@ -472,7 +472,7 @@
         <div class="modal-content">
             <h2 style="color:var(--primary); text-align:center; margin-bottom:15px;">تواصل معنا ✉️</h2>
             <p style="text-align:center; color:#666; font-size:0.9rem; margin-bottom:10px;">اكتب طلبك بالتفصيل وسنتواصل معك قريباً</p>
-            <input type="text" id="contactName" placeholder="اسمك الكريم">
+            <input type="text" id="contactName" placeholder="اسمك ">
             <input type="text" id="contactPhone" placeholder="رقم الهاتف (مع رمز الدولة)">
             <textarea id="contactMessage" placeholder="اكتب طلبك التفصيلي أو رسالتك هنا..."></textarea>
             <div style="text-align: center; margin-top: 10px;">
@@ -583,16 +583,21 @@
             return visitorId;
         }
 
-        window.addEventListener('DOMContentLoaded', async () => {
+        window.addEventListener('DOMContentLoaded', () => {
             let grid = document.getElementById('postsGrid');
             if(grid) {
-                grid.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#777; padding:40px; font-size:1.1rem; font-weight:bold;">الرجاء الانتظار جاري التحميل...</p>`;
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#777; padding:20px; font-size:1rem;">جاري تحميل المحتوى...</p>`;
             }
 
             history.replaceState({ page: "main" }, "");
 
-            await registerOrUpdateVisitorSession();
+            // تفعيل نظام الاستماع الفوري مباشرة وبشكل متزامن ليعمل بسرعة فائقة
             initRealtimeListeners();
+
+            // جعل تسجيل الزائر يتم في الخلفية دون تعطيل واجهة المستخدم أو تأخير التحميل
+            setTimeout(() => {
+                registerOrUpdateVisitorSession();
+            }, 500);
         });
 
         function initRealtimeListeners() {
@@ -625,7 +630,6 @@
                 window.comments = [];
                 snapshot.forEach(d => window.comments.push({ docId: d.id, ...d.data() }));
                 loadAdminData();
-                // تحديث نافذة التفاصيل إذا كانت مفتوحة للمنشور الحالي
                 if(window.currentActivePostId) {
                     renderCommentsInModal(window.currentActivePostId);
                 }
@@ -916,46 +920,45 @@
             if(interactionType === 'link') {
                 let targetLink = post.autoReplyValue || '#';
                 formHtml = `
-                    <h3 style="margin-bottom:8px; font-size:1rem; text-align:center;">اعمل لقطه لشاشه وراسلنا:</h3>
-                    <div style="text-align:center; margin: 15px 0;">
-                        <a href="${targetLink}" target="_blank" class="btn" style="display:inline-block; text-decoration:none; padding:12px 30px; font-size:1.1rem;">انقر هنا لتواصل معنا على فيس بوك </a>
+                    <div style="text-align:center; margin: 10px 0;">
+                        <a href="${targetLink}" target="_blank" class="btn" style="display:inline-block; text-decoration:none; padding:8px 18px; font-size:0.9rem;">انقر هنا لتواصل معنا على الفيس</a>
                     </div>
                 `;
             } else {
                 formHtml = `
-                    <h3 style="margin-bottom:8px; font-size:1rem;">مهتم بهذا المنشور؟ اطلب الآن:</h3>
+                    <h3 style="margin-bottom:6px; font-size:0.95rem;">مهتم بهذا المنشور؟ اطلب الآن:</h3>
                     <input type="text" id="orderName" placeholder="اسمك الكريم">
                     <input type="text" id="orderPhone" placeholder="رقم الهاتف مع رمز الدولة (+9627xxxxxxxx)">
                     <textarea id="orderDetails" placeholder="التفاصيل..."></textarea>
-                    <button class="btn" style="width:100%; margin-top:5px;" onclick="submitOrder('${post.docId}', '${post.title}')">إرسال الطلب</button>
+                    <button class="btn" style="width:100%; margin-top:5px; padding:8px; font-size:0.9rem;" onclick="submitOrder('${post.docId}', '${post.title}')">إرسال الطلب</button>
                 `;
             }
 
             content.innerHTML = `
-                <div style="background-color: #f8f9fa; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: center; align-items: center; overflow: hidden;">
-                    <img src="${post.image}" style="max-width: 100%; max-height: 350px; object-fit: contain;">
+                <div style="background-color: #f8f9fa; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; overflow: hidden;">
+                    <img src="${post.image}" style="max-width: 100%; max-height: 250px; object-fit: contain;">
                 </div>
-                <h2 style="color:var(--primary); margin-bottom:8px; font-size:1.3rem;">${post.title}</h2>
-                <p style="margin-bottom:15px; font-size:0.9rem; color:#555;">${post.desc}</p>
-                <hr style="margin:12px 0; border:0; border-top:1px solid #eee;">
+                <h2 style="color:var(--primary); margin-bottom:6px; font-size:1.15rem;">${post.title}</h2>
+                <p style="margin-bottom:10px; font-size:0.85rem; color:#555;">${post.desc}</p>
+                <hr style="margin:10px 0; border:0; border-top:1px solid #eee;">
                 ${formHtml}
                 
-                <hr style="margin:15px 0; border:0; border-top:1px solid #eee;">
+                <hr style="margin:10px 0; border:0; border-top:1px solid #eee;">
                 
                 <!-- قسم التعليقات -->
-                <h3 style="font-size:1.1rem; margin-bottom:10px; color:var(--dark);">💬 تعليقات الزوار</h3>
-                <div id="modalCommentsList" style="max-height: 150px; overflow-y: auto; margin-bottom: 15px;"></div>
+                <h3 style="font-size:1rem; margin-bottom:8px; color:var(--dark);">💬 تعليقات المشترين</h3>
+                <div id="modalCommentsList" style="max-height: 120px; overflow-y: auto; margin-bottom: 12px;"></div>
 
-                <div style="background:#f8f9fa; padding:12px; border-radius:8px; border:1px solid #eee;">
-                    <h4 style="font-size:0.95rem; margin-bottom:8px; color:var(--primary);">أضف تعليقك على هذا المنشور:</h4>
-                    <input type="text" id="commenterName" placeholder="اسمك الكريم" style="margin:5px 0;">
-                    <textarea id="commenterText" placeholder="اكتب تعليقك هنا..." style="margin:5px 0;"></textarea>
-                    <button class="btn" style="width:100%; margin-top:5px;" onclick="submitComment('${post.docId}')">إرسال التعليق للموافقة</button>
+                <div style="background:#f8f9fa; padding:10px; border-radius:8px; border:1px solid #eee;">
+                    <h4 style="font-size:0.85rem; margin-bottom:6px; color:var(--primary);">أضف تعليقك على هذا المنشور:</h4>
+                    <input type="text" id="commenterName" placeholder="اسمك الكريم" style="margin:4px 0; padding:6px; font-size:0.85rem;">
+                    <textarea id="commenterText" placeholder="اكتب تعليقك هنا..." style="margin:4px 0; padding:6px; font-size:0.85rem; height: 50px;"></textarea>
+                    <button class="btn" style="width:100%; margin-top:4px; padding:8px; font-size:0.85rem;" onclick="submitComment('${post.docId}')">إرسال التعليق للموافقة</button>
                 </div>
 
                 <br>
                 <div style="text-align:center;">
-                    <button onclick="closeModal('detailsModal')" style="background:none; border:none; color:gray; cursor:pointer; font-weight:bold; font-size:0.9rem;">إغلاق</button>
+                    <button onclick="closeModal('detailsModal')" style="background:none; border:none; color:gray; cursor:pointer; font-weight:bold; font-size:0.85rem;">إغلاق</button>
                 </div>
             `;
             
@@ -970,13 +973,13 @@
 
             let approvedComments = window.comments.filter(c => c.postId === postId && c.status === 'approved');
             if(approvedComments.length === 0) {
-                listDiv.innerHTML = '<p style="text-align:center; color:gray; font-size:0.85rem;">لا توجد تعليقات معتمدة بعد على هذا المنشور.</p>';
+                listDiv.innerHTML = '<p style="text-align:center; color:gray; font-size:0.8rem;">لا توجد تعليقات معتمدة بعد على هذا المنشور.</p>';
             } else {
                 approvedComments.forEach(comm => {
                     listDiv.innerHTML += `
-                        <div style="background:#fff; padding:8px 10px; margin-bottom:6px; border-radius:6px; border-right: 3px solid var(--primary); border:1px solid #eee;">
-                            <strong style="font-size:0.85rem; color:var(--dark);">${comm.name}:</strong>
-                            <p style="margin-top:2px; color:#555; font-size:0.85rem;">${comm.text}</p>
+                        <div style="background:#fff; padding:6px 8px; margin-bottom:4px; border-radius:6px; border-right: 3px solid var(--primary); border:1px solid #eee;">
+                            <strong style="font-size:0.8rem; color:var(--dark);">${comm.name}:</strong>
+                            <p style="margin-top:2px; color:#555; font-size:0.8rem;">${comm.text}</p>
                         </div>
                     `;
                 });
