@@ -202,29 +202,13 @@
             background: var(--primary);
         }
 
-        /* تذييل الصفحة (Footer) وزر تواصل معنا */
+        /* تذييل الصفحة (Footer) */
         footer {
             text-align: center;
             padding: 30px 20px;
             margin-top: 50px;
             background: var(--white);
             border-top: 1px solid #eee;
-        }
-        .contact-btn {
-            background: var(--primary);
-            color: var(--white);
-            border: none;
-            padding: 10px 25px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1rem;
-            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
-            transition: 0.2s;
-        }
-        .contact-btn:hover {
-            opacity: 0.9;
-            transform: scale(1.02);
         }
 
         /* زر الدردشة المباشرة العائم (Floating Live Chat Button) */
@@ -571,31 +555,14 @@
         </div>
     </div>
 
-    <!-- تذييل الصفحة (Footer) مع زر تواصل معنا -->
+    <!-- تذييل الصفحة (Footer) بدون زر تواصل معنا -->
     <footer>
-        <p style="margin-bottom: 12px; color: #666; font-size: 0.9rem;">جميع الحقوق محفوظة © موقع انبسط</p>
-        <button class="contact-btn" onclick="openContactModal()">تواصل معنا</button>
+        <p style="color: #666; font-size: 0.9rem;">جميع الحقوق محفوظة © موقع انبسط</p>
     </footer>
 
     <!-- نافذة تفاصيل المنشور والطلب والتعليقات -->
     <div class="details-modal modal" id="detailsModal">
         <div class="details-content modal-content" id="detailsContent" style="display:block;"></div>
-    </div>
-
-    <!-- نافذة تواصل معنا (للزوّار) -->
-    <div class="modal" id="contactModal">
-        <div class="modal-content">
-            <h2 style="color:var(--primary); text-align:center; margin-bottom:15px;">تواصل معنا ✉️</h2>
-            <p style="text-align:center; color:#666; font-size:0.9rem; margin-bottom:10px;">اكتب طلبك بالتفصيل وسنتواصل معك قريباً</p>
-            <input type="text" id="contactName" placeholder="اسمك ">
-            <input type="text" id="contactPhone" placeholder="رقم الهاتف (مع رمز الدولة)">
-            <textarea id="contactMessage" placeholder="اكتب طلبك التفصيلي أو رسالتك هنا..."></textarea>
-            <div style="text-align: center; margin-top: 10px;">
-                <button class="btn" style="width:100%;" onclick="submitContactMessage()">إرسال الرسالة</button>
-                <br><br>
-                <button onclick="closeModal('contactModal')" style="background:none; border:none; color:gray; cursor:pointer; font-weight:bold; font-size:0.9rem;">إغلاق</button>
-            </div>
-        </div>
     </div>
 
     <!-- نافذة طلبات الزوار المنبثقة للأدمن -->
@@ -901,10 +868,9 @@
 
         async function appendAutoReplyToChat() {
             let vId = registerVisitorDevice();
-            // التحقق مما إذا كان الأدمن قد رد مؤخراً
             let userChats = window.chats.filter(c => c.visitorId === vId);
             let lastMsg = userChats[userChats.length - 1];
-            if(lastMsg && lastMsg.sender === 'admin') return; // إذا رد الأدمن لا يظهر الرد الآلي
+            if(lastMsg && lastMsg.sender === 'admin') return;
 
             let autoReplyText = `عذراً، لم يتسن للأدمن الرد حالياً. يرجى التواصل معنا على صفحتنا على الفيسبوك: <a href="${window.facebookChatLink}" target="_blank" style="color:#0984e3; font-weight:bold;">اضغط هنا لفتح الفيسبوك</a>`;
             
@@ -938,7 +904,6 @@
                 area.innerHTML += `<div class="chat-bubble ${bubbleClass}">${c.text}</div>`;
             });
 
-            // إذا رد الأدمن، نلغي العداد
             if(hasAdminReplied) {
                 document.getElementById('chatCountdownContainer').style.display = 'none';
             }
@@ -1011,7 +976,9 @@
             renderAdminChatConversation(window.selectedChatVisitorId);
         }
 
+        // ==========================================
         // إدارة النوافذ وزر الرجوع
+        // ==========================================
         window.openModal = function(modalId) {
             let modal = document.getElementById(modalId);
             if(modal && modal.style.display !== 'flex') {
@@ -1042,8 +1009,11 @@
                     if(lastModalId === 'detailsModal') window.currentActivePostId = null;
                 }
                 history.pushState({ page: "main" }, "");
+            } else {
+                history.pushState({ page: "main" }, "");
             }
         });
+        // ==========================================
 
         window.renderAnnouncement = function() {
             let banner = document.getElementById('announcementBanner');
@@ -1093,22 +1063,6 @@
                 editPostSectionSelect.innerHTML = '';
                 window.sections.forEach(sec => { editPostSectionSelect.innerHTML += `<option value="${sec}">${sec}</option>`; });
             }
-        }
-
-        window.openContactModal = function() { window.openModal('contactModal'); }
-
-        window.submitContactMessage = async function() {
-            let name = document.getElementById('contactName').value;
-            let phone = document.getElementById('contactPhone').value;
-            let msg = document.getElementById('contactMessage').value;
-            if(!name || !phone || !msg) { alert('الرجاء تعبئة جميع الحقول (الاسم، الرقم، الرسالة)'); return; }
-            let newMsg = { id: Date.now(), name, phone, msg };
-            await addDoc(collection(db, "messages"), newMsg);
-            alert('تم إرسال رسالتك بنجاح وسيتم الرد عليك قريباً!');
-            document.getElementById('contactName').value = '';
-            document.getElementById('contactPhone').value = '';
-            document.getElementById('contactMessage').value = '';
-            window.closeModal('contactModal');
         }
 
         window.openAdminOrdersModal = function() { window.openModal('adminOrdersModal'); }
