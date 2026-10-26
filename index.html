@@ -227,6 +227,73 @@
             transform: scale(1.02);
         }
 
+        /* زر الدردشة المباشرة العائم (Floating Live Chat Button) */
+        #liveChatFloatingBtn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        #liveChatFloatingBtn:hover { transform: scale(1.05); }
+
+        /* نافذة الدردشة المباشرة */
+        #liveChatModal .modal-content {
+            max-width: 400px;
+            height: 480px;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+        }
+        #chatMessagesArea {
+            flex: 1;
+            background: #f1f2f6;
+            border-radius: 8px;
+            padding: 10px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .chat-bubble {
+            max-width: 80%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            word-break: break-word;
+        }
+        .chat-bubble.user {
+            background: var(--secondary);
+            color: white;
+            align-self: flex-start;
+        }
+        .chat-bubble.admin {
+            background: var(--primary);
+            color: white;
+            align-self: flex-end;
+        }
+        .chat-bubble.system {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            align-self: center;
+            text-align: center;
+            width: 100%;
+        }
+
         /* النوافذ المنبثقة (Modals) */
         .modal {
             display: none;
@@ -355,14 +422,22 @@
             <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
                 <button class="btn" onclick="openAdminOrdersModal()" style="background:#2ed573;">📥 طلبات الزوار (<span id="adminOrderCount">0</span>)</button>
                 <button class="btn" onclick="openAdminMessagesModal()" style="background:#0984e3;">📬 رسائل تواصل معنا (<span id="adminMsgCount">0</span>)</button>
-                <button class="btn" onclick="openAdminVisitorsModal()" style="background:#ffa502;">👥 عداد الزوار الحقيقي (<span id="adminVisitorCount">0</span>)</button>
+                <button class="btn" onclick="openAdminChatModal()" style="background:#ffa502;">💬 دردشة الزوار المباشرة (<span id="adminChatCount">0</span>)</button>
+                <button class="btn" onclick="openAdminVisitorsModal()" style="background:#a55eea;">👥 عداد الزوار الحقيقي (<span id="adminVisitorCount">0</span>)</button>
                 <button class="btn" onclick="logoutAdmin()" style="background:#636e72;">تسجيل خروج الأدمن</button>
             </div>
             
             <!-- أقسام الإدارة المتقدمة (تظهر فقط لكلمة السر ooddaayy) -->
             <div id="fullAdminSectionsContainer">
-                <!-- إدارة التنويه العام -->
+                <!-- إدارة رابط الفيسبوك للرد الآلي -->
                 <div class="admin-section" style="margin-top:20px;">
+                    <h3>إدارة رابط صفحة الفيسبوك (للرد الآلي في الدردشة) 🌐</h3>
+                    <input type="text" id="adminFacebookLinkInput" placeholder="أدخل رابط صفحة الفيسبوك هنا..." style="width:100%; padding:8px; margin:5px 0;">
+                    <button class="btn" onclick="saveFacebookLink()">حفظ رابط الفيسبوك</button>
+                </div>
+
+                <!-- إدارة التنويه العام -->
+                <div class="admin-section">
                     <h3>إدارة التنويه العام الثابت 📢</h3>
                     <textarea id="adminAnnouncementInput" placeholder="اكتب نص التنويه الثابت..." style="width:100%; padding:8px; margin:5px 0;"></textarea>
                     <div style="display:flex; gap:10px; margin-top:5px;">
@@ -390,14 +465,12 @@
 
                     <textarea id="postDesc" placeholder="تفاصيل المنشور" style="width:100%; padding:8px; margin:5px 0;"></textarea>
                     
-                    <!-- اختيار طريقة التفاعل للمنشور -->
                     <label style="font-size: 0.9rem; color:#555; font-weight:bold;">طريقة التفاعل لهذا المنشور (ماذا يظهر للزائر؟):</label>
                     <select id="postInteractionType" style="width:100%; padding:8px; margin:5px 0;">
                         <option value="link">رابط (يظهر الرابط الذي يحدده الأدمن مباشرة للزائر)</option>
                         <option value="details">اسمك، رقمك مع رمز الدولة، والتفاصيل</option>
                     </select>
 
-                    <!-- الرابط أو الرد الآلي -->
                     <label style="font-size: 0.9rem; color:#555; font-weight:bold;" id="postAutoReplyLabel">الرابط المستهدف (أو الرد الآلي):</label>
                     <input type="text" id="postAutoReplyValue" placeholder="أدخل الرابط أو نص الرسالة هنا..." style="width:100%; padding:8px; margin:5px 0;">
 
@@ -412,11 +485,53 @@
                     <div id="adminPostsList" style="max-height: 250px; overflow-y: auto; margin-top: 10px;"></div>
                 </div>
 
-                <!-- إدارة التعليقات (المعلقة والمعتمدة) -->
+                <!-- إدارة التعليقات -->
                 <div class="admin-section">
                     <h3>تعليقات المشترين على المنشورات (المعلقة والمعتمدة)</h3>
                     <div id="allCommentsAdminList" style="max-height: 200px; overflow-y: auto;"></div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- زر الدردشة المباشرة العائم للزوار -->
+    <button id="liveChatFloatingBtn" onclick="openLiveChat()" title="دردشة مباشرة مع الإدارة">💬</button>
+
+    <!-- نافذة الدردشة المباشرة للزائر -->
+    <div class="modal" id="liveChatModal">
+        <div class="modal-content">
+            <h2 style="color:var(--primary); text-align:center; margin-bottom:10px; font-size:1.2rem;">الدردشة المباشرة مع الإدارة 💬</h2>
+            <div id="chatMessagesArea"></div>
+            <!-- العداد التنازلي يظهر هنا عند إرسال رسالة -->
+            <div id="chatCountdownContainer" style="text-align:center; font-size:0.85rem; color:#d63031; font-weight:bold; margin-bottom:5px; display:none;">
+                ⏳ يرجى الانتظار، نقوم بتوصيلك مع الوكيل... (<span id="chatTimerDisplay">02:00</span>)
+            </div>
+            <div style="display:flex; gap:5px;">
+                <input type="text" id="chatInputMessage" placeholder="اكتب رسالتك هنا..." style="margin:0; flex:1;" onkeypress="if(event.key==='Enter') sendChatMessage()">
+                <button class="btn" style="padding:8px 15px;" onclick="sendChatMessage()">إرسال</button>
+            </div>
+            <div style="text-align: center; margin-top:8px;">
+                <button onclick="closeModal('liveChatModal')" style="background:none; border:none; color:gray; cursor:pointer; font-weight:bold; font-size:0.85rem;">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة إدارة دردشة الزوار للأدمن -->
+    <div class="modal" id="adminChatModal">
+        <div class="modal-content" style="max-width: 600px; height: 500px; display:flex; flex-direction:column;">
+            <h2 style="color:var(--primary); text-align:center; margin-bottom:10px; font-size:1.2rem;">إدارة دردشات الزوار المباشرة 🛠️</h2>
+            <div style="display:flex; gap:10px; flex:1; overflow:hidden;">
+                <div id="adminChatUsersList" style="width: 35%; border-left: 1px solid #eee; overflow-y: auto; padding-left: 5px;"></div>
+                <div id="adminChatActiveConversation" style="flex: 1; display:flex; flex-direction:column; display:none;">
+                    <div id="adminChatMessagesArea" style="flex:1; background:#f9f9f9; padding:8px; overflow-y:auto; border-radius:6px; margin-bottom:8px; display:flex; flex-direction:column; gap:6px;"></div>
+                    <div style="display:flex; gap:5px;">
+                        <input type="text" id="adminReplyInput" placeholder="اكتب ردك للزائر..." style="margin:0; flex:1;" onkeypress="if(event.key==='Enter') sendAdminReply()">
+                        <button class="btn" style="padding:8px 12px;" onclick="sendAdminReply()">إرسال</button>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 10px;">
+                <button onclick="closeModal('adminChatModal')" style="background:none; border:none; color:gray; cursor:pointer; font-weight:bold; font-size:0.85rem;">إغلاق النافذة</button>
             </div>
         </div>
     </div>
@@ -569,10 +684,14 @@
         window.orders = [];
         window.messages = [];
         window.visitors = [];
+        window.chats = [];
         window.siteAnnouncement = '';
+        window.facebookChatLink = 'https://facebook.com';
         window.currentSectionFilter = 'الكل';
         window.activeModalsStack = [];
         window.isAdminLoggedIn = false;
+        window.selectedChatVisitorId = null;
+        window.chatCountdownInterval = null;
 
         function registerVisitorDevice() {
             let visitorId = localStorage.getItem('uniqueVisitorId');
@@ -591,26 +710,55 @@
 
             history.replaceState({ page: "main" }, "");
 
-            // تفعيل نظام الاستماع الفوري مباشرة وبشكل متزامن ليعمل بسرعة فائقة
+            // استرجاع حالة تسجيل دخول الأدمن لمنع خروجه التلقائي
+            let savedAdmin = localStorage.getItem('isAdminLoggedIn');
+            if(savedAdmin === 'true') {
+                window.isAdminLoggedIn = true;
+                document.getElementById('admin-panel').style.display = 'block';
+                if(localStorage.getItem('adminPassType') === 'ooddaayy') {
+                    document.getElementById('fullAdminSectionsContainer').style.display = 'block';
+                } else {
+                    document.getElementById('fullAdminSectionsContainer').style.display = 'none';
+                }
+                requestNotificationPermission();
+            }
+
             initRealtimeListeners();
 
-            // جعل تسجيل الزائر يتم في الخلفية دون تعطيل واجهة المستخدم أو تأخير التحميل
             setTimeout(() => {
                 registerOrUpdateVisitorSession();
             }, 500);
         });
+
+        // طلب تفعيل الإشعارات إجبارياً للأدمن
+        function requestNotificationPermission() {
+            if ("Notification" in window) {
+                if (Notification.permission !== "granted") {
+                    Notification.requestPermission().then(permission => {
+                        if (permission !== "granted") {
+                            alert("يجب تفعيل الإشعارات لتتمكن من تلقي تنبيهات الدردشة المباشرة!");
+                        }
+                    });
+                }
+            }
+        }
 
         function initRealtimeListeners() {
             onSnapshot(doc(db, "settings", "main"), (docSnap) => {
                 if(docSnap.exists()) {
                     let data = docSnap.data();
                     let newAnnouncement = data.announcement || '';
-                    
                     if(window.siteAnnouncement !== newAnnouncement) {
                         window.siteAnnouncement = newAnnouncement;
                         renderAnnouncement();
                     }
-
+                    if(data.facebookLink) {
+                        window.facebookChatLink = data.facebookLink;
+                        let fbInput = document.getElementById('adminFacebookLinkInput');
+                        if(fbInput && fbInput.value !== data.facebookLink) {
+                            fbInput.value = data.facebookLink;
+                        }
+                    }
                     if(data.sections && JSON.stringify(window.sections) !== JSON.stringify(data.sections)) {
                         window.sections = data.sections;
                         renderSectionsNav();
@@ -652,6 +800,31 @@
                 snapshot.forEach(d => window.visitors.push(d.data()));
                 loadAdminData();
             });
+
+            onSnapshot(collection(db, "chats"), (snapshot) => {
+                let oldChatsCount = window.chats.length;
+                window.chats = [];
+                snapshot.forEach(d => window.chats.push({ docId: d.id, ...d.data() }));
+                loadAdminData();
+                
+                let vId = registerVisitorDevice();
+                if(window.activeModalsStack.includes('liveChatModal')) {
+                    renderVisitorChatMessages(vId);
+                }
+                if(window.isAdminLoggedIn && window.selectedChatVisitorId) {
+                    renderAdminChatConversation(window.selectedChatVisitorId);
+                }
+
+                // تنبيه الأدمن بإشعار عند وصول رسالة جديدة من زائر
+                if(window.isAdminLoggedIn && window.chats.length > oldChatsCount) {
+                    let latestChat = window.chats[window.chats.length - 1];
+                    if(latestChat.sender === 'user') {
+                        if ("Notification" in window && Notification.permission === "granted") {
+                            new Notification("رسالة دردشة جديدة 💬", { body: latestChat.text });
+                        }
+                    }
+                }
+            });
         }
 
         async function registerOrUpdateVisitorSession() {
@@ -667,6 +840,178 @@
             }
         }
 
+        // حفظ رابط الفيسبوك للأدمن
+        window.saveFacebookLink = async function() {
+            let link = document.getElementById('adminFacebookLinkInput').value.trim();
+            if(!link) { alert('الرجاء إدخال الرابط'); return; }
+            window.facebookChatLink = link;
+            await setDoc(doc(db, "settings", "main"), { facebookLink: link, announcement: window.siteAnnouncement, sections: window.sections }, { merge: true });
+            alert('تم حفظ رابط الفيسبوك بنجاح!');
+        }
+
+        // دوال الدردشة المباشرة والعداد التنازلي للزائر
+        window.openLiveChat = function() {
+            let vId = registerVisitorDevice();
+            renderVisitorChatMessages(vId);
+            window.openModal('liveChatModal');
+        }
+
+        window.sendChatMessage = async function() {
+            let input = document.getElementById('chatInputMessage');
+            let text = input.value.trim();
+            if(!text) return;
+
+            let vId = registerVisitorDevice();
+            let newMsg = {
+                visitorId: vId,
+                sender: 'user',
+                text: text,
+                timestamp: Date.now()
+            };
+
+            await addDoc(collection(db, "chats"), newMsg);
+            input.value = '';
+            renderVisitorChatMessages(vId);
+            startChatCountdown();
+        }
+
+        function startChatCountdown() {
+            let container = document.getElementById('chatCountdownContainer');
+            let timerDisplay = document.getElementById('chatTimerDisplay');
+            if(!container || !timerDisplay) return;
+
+            container.style.display = 'block';
+            let timeLeft = 120; // دقيقتين (120 ثانية)
+
+            if(window.chatCountdownInterval) clearInterval(window.chatCountdownInterval);
+
+            window.chatCountdownInterval = setInterval(() => {
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                timerDisplay.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                if(timeLeft <= 0) {
+                    clearInterval(window.chatCountdownInterval);
+                    container.style.display = 'none';
+                    appendAutoReplyToChat();
+                }
+                timeLeft--;
+            }, 1000);
+        }
+
+        async function appendAutoReplyToChat() {
+            let vId = registerVisitorDevice();
+            // التحقق مما إذا كان الأدمن قد رد مؤخراً
+            let userChats = window.chats.filter(c => c.visitorId === vId);
+            let lastMsg = userChats[userChats.length - 1];
+            if(lastMsg && lastMsg.sender === 'admin') return; // إذا رد الأدمن لا يظهر الرد الآلي
+
+            let autoReplyText = `عذراً، لم يتسن للأدمن الرد حالياً. يرجى التواصل معنا على صفحتنا على الفيسبوك: <a href="${window.facebookChatLink}" target="_blank" style="color:#0984e3; font-weight:bold;">اضغط هنا لفتح الفيسبوك</a>`;
+            
+            let area = document.getElementById('chatMessagesArea');
+            if(area) {
+                area.innerHTML += `<div class="chat-bubble system">${autoReplyText}</div>`;
+                area.scrollTop = area.scrollHeight;
+            }
+        }
+
+        window.renderVisitorChatMessages = function(vId) {
+            let area = document.getElementById('chatMessagesArea');
+            if(!area) return;
+            area.innerHTML = '';
+
+            let userChats = window.chats.filter(c => c.visitorId === vId).sort((a, b) => a.timestamp - b.timestamp);
+            if(userChats.length === 0) {
+                area.innerHTML = '<p style="text-align:center; color:#777; font-size:0.85rem; margin-top:20px;">أهلاً بك! اكتب رسالتك وسيرد عليك الأدمن قريباً.</p>';
+                document.getElementById('chatCountdownContainer').style.display = 'none';
+                return;
+            }
+
+            let hasAdminReplied = userChats.some(c => c.sender === 'admin');
+            if(hasAdminReplied && window.chatCountdownInterval) {
+                clearInterval(window.chatCountdownInterval);
+                document.getElementById('chatCountdownContainer').style.display = 'none';
+            }
+
+            userChats.forEach(c => {
+                let bubbleClass = c.sender === 'user' ? 'user' : 'admin';
+                area.innerHTML += `<div class="chat-bubble ${bubbleClass}">${c.text}</div>`;
+            });
+
+            // إذا رد الأدمن، نلغي العداد
+            if(hasAdminReplied) {
+                document.getElementById('chatCountdownContainer').style.display = 'none';
+            }
+
+            area.scrollTop = area.scrollHeight;
+        }
+
+        window.openAdminChatModal = function() {
+            window.openModal('adminChatModal');
+            renderAdminChatUsersList();
+        }
+
+        window.renderAdminChatUsersList = function() {
+            let listDiv = document.getElementById('adminChatUsersList');
+            if(!listDiv) return;
+            listDiv.innerHTML = '';
+
+            let uniqueVisitors = [...new Set(window.chats.map(c => c.visitorId))];
+            if(uniqueVisitors.length === 0) {
+                listDiv.innerHTML = '<p style="color:#777; font-size:0.85rem; text-align:center;">لا توجد محادثات.</p>';
+                return;
+            }
+
+            uniqueVisitors.forEach(vId => {
+                let lastMsg = window.chats.filter(c => c.visitorId === vId).pop();
+                listDiv.innerHTML += `
+                    <div onclick="selectAdminChatUser('${vId}')" style="padding:10px; margin-bottom:6px; background:${window.selectedChatVisitorId === vId ? '#e1f5fe' : '#f8f9fa'}; border-radius:6px; cursor:pointer; border:1px solid #eee;">
+                        <strong style="font-size:0.8rem; color:var(--dark);">زائر: ${vId.substring(0, 10)}...</strong>
+                        <p style="font-size:0.75rem; color:#666; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${lastMsg ? lastMsg.text : ''}</p>
+                    </div>
+                `;
+            });
+        }
+
+        window.selectAdminChatUser = function(vId) {
+            window.selectedChatVisitorId = vId;
+            document.getElementById('adminChatActiveConversation').style.display = 'flex';
+            renderAdminChatUsersList();
+            renderAdminChatConversation(vId);
+        }
+
+        window.renderAdminChatConversation = function(vId) {
+            let area = document.getElementById('adminChatMessagesArea');
+            if(!area) return;
+            area.innerHTML = '';
+
+            let userChats = window.chats.filter(c => c.visitorId === vId).sort((a, b) => a.timestamp - b.timestamp);
+            userChats.forEach(c => {
+                let bubbleClass = c.sender === 'user' ? 'user' : 'admin';
+                area.innerHTML += `<div class="chat-bubble ${bubbleClass}">${c.text}</div>`;
+            });
+            area.scrollTop = area.scrollHeight;
+        }
+
+        window.sendAdminReply = async function() {
+            if(!window.selectedChatVisitorId) return;
+            let input = document.getElementById('adminReplyInput');
+            let text = input.value.trim();
+            if(!text) return;
+
+            let newMsg = {
+                visitorId: window.selectedChatVisitorId,
+                sender: 'admin',
+                text: text,
+                timestamp: Date.now()
+            };
+
+            await addDoc(collection(db, "chats"), newMsg);
+            input.value = '';
+            renderAdminChatConversation(window.selectedChatVisitorId);
+        }
+
+        // إدارة النوافذ وزر الرجوع
         window.openModal = function(modalId) {
             let modal = document.getElementById(modalId);
             if(modal && modal.style.display !== 'flex') {
@@ -684,9 +1029,7 @@
                 if(modalId === 'detailsModal') {
                     window.currentActivePostId = null;
                 }
-                if(history.state && history.state.modalOpen === modalId) {
-                    history.back();
-                }
+                history.back();
             }
         }
 
@@ -706,11 +1049,9 @@
             let banner = document.getElementById('announcementBanner');
             let textDisplay = document.getElementById('announcementTextDisplay');
             let adminInput = document.getElementById('adminAnnouncementInput');
-            
             if(adminInput && adminInput.value !== window.siteAnnouncement) {
                 adminInput.value = window.siteAnnouncement;
             }
-
             if(window.siteAnnouncement && window.siteAnnouncement.trim() !== '') {
                 textDisplay.innerText = window.siteAnnouncement;
                 banner.style.display = 'block';
@@ -722,7 +1063,7 @@
         window.saveAnnouncement = async function() {
             let text = document.getElementById('adminAnnouncementInput').value.trim();
             window.siteAnnouncement = text;
-            await setDoc(doc(db, "settings", "main"), { announcement: text, sections: window.sections }, { merge: true });
+            await setDoc(doc(db, "settings", "main"), { announcement: text, facebookLink: window.facebookChatLink, sections: window.sections }, { merge: true });
             window.renderAnnouncement();
             alert('تم حفظ ونشر التنويه الثابت سحابياً بنجاح!');
         }
@@ -730,7 +1071,7 @@
         window.deleteAnnouncement = async function() {
             if(confirm('هل أنت متأكد من مسح التنويه العام؟')) {
                 window.siteAnnouncement = '';
-                await setDoc(doc(db, "settings", "main"), { announcement: '', sections: window.sections }, { merge: true });
+                await setDoc(doc(db, "settings", "main"), { announcement: '', facebookLink: window.facebookChatLink, sections: window.sections }, { merge: true });
                 window.renderAnnouncement();
                 alert('تم مسح التنويه بنجاح.');
             }
@@ -739,42 +1080,28 @@
         window.renderSectionsNav = function() {
             let nav = document.getElementById('sectionsNav');
             nav.innerHTML = `<button class="section-btn ${window.currentSectionFilter === 'الكل' ? 'active' : ''}" onclick="changeSection('الكل')">الكل</button>`;
-            
             window.sections.forEach(sec => {
                 nav.innerHTML += `<button class="section-btn ${window.currentSectionFilter === sec ? 'active' : ''}" onclick="changeSection('${sec}')">${sec}</button>`;
             });
-
             let postSectionSelect = document.getElementById('postSection');
             if(postSectionSelect) {
                 postSectionSelect.innerHTML = '';
-                window.sections.forEach(sec => {
-                    postSectionSelect.innerHTML += `<option value="${sec}">${sec}</option>`;
-                });
+                window.sections.forEach(sec => { postSectionSelect.innerHTML += `<option value="${sec}">${sec}</option>`; });
             }
-
             let editPostSectionSelect = document.getElementById('editPostSection');
             if(editPostSectionSelect) {
                 editPostSectionSelect.innerHTML = '';
-                window.sections.forEach(sec => {
-                    editPostSectionSelect.innerHTML += `<option value="${sec}">${sec}</option>`;
-                });
+                window.sections.forEach(sec => { editPostSectionSelect.innerHTML += `<option value="${sec}">${sec}</option>`; });
             }
         }
 
-        window.openContactModal = function() {
-            window.openModal('contactModal');
-        }
+        window.openContactModal = function() { window.openModal('contactModal'); }
 
         window.submitContactMessage = async function() {
             let name = document.getElementById('contactName').value;
             let phone = document.getElementById('contactPhone').value;
             let msg = document.getElementById('contactMessage').value;
-
-            if(!name || !phone || !msg) {
-                alert('الرجاء تعبئة جميع الحقول (الاسم، الرقم، الرسالة)');
-                return;
-            }
-
+            if(!name || !phone || !msg) { alert('الرجاء تعبئة جميع الحقول (الاسم، الرقم، الرسالة)'); return; }
             let newMsg = { id: Date.now(), name, phone, msg };
             await addDoc(collection(db, "messages"), newMsg);
             alert('تم إرسال رسالتك بنجاح وسيتم الرد عليك قريباً!');
@@ -784,46 +1111,25 @@
             window.closeModal('contactModal');
         }
 
-        window.openAdminOrdersModal = function() {
-            window.openModal('adminOrdersModal');
-        }
-
-        window.openAdminMessagesModal = function() {
-            window.openModal('adminMessagesModal');
-            window.loadAdminMessagesList();
-        }
-
-        window.openAdminVisitorsModal = function() {
-            window.openModal('adminVisitorsModal');
-            window.loadAdminVisitorsList();
-        }
+        window.openAdminOrdersModal = function() { window.openModal('adminOrdersModal'); }
+        window.openAdminMessagesModal = function() { window.openModal('adminMessagesModal'); window.loadAdminMessagesList(); }
+        window.openAdminVisitorsModal = function() { window.openModal('adminVisitorsModal'); window.loadAdminVisitorsList(); }
 
         window.loadAdminVisitorsList = function() {
             let list = document.getElementById('adminVisitorsTable');
             let countDisplay = document.getElementById('realVisitorCountDisplay');
             if(countDisplay) countDisplay.innerText = window.visitors.length;
             list.innerHTML = '';
-            if(window.visitors.length === 0) {
-                list.innerHTML = '<tr><td colspan="2" style="color:#777;">لا توجد بيانات زوار حتى الآن.</td></tr>';
-                return;
-            }
+            if(window.visitors.length === 0) { list.innerHTML = '<tr><td colspan="2" style="color:#777;">لا توجد بيانات زوار حتى الآن.</td></tr>'; return; }
             window.visitors.forEach((v, index) => {
-                list.innerHTML += `
-                    <tr>
-                        <td><strong>زائر رقم (${index + 1}):</strong> <span style="font-family:monospace; color:#0984e3;">${v.visitorId}</span></td>
-                        <td>${v.timestamp || 'غير متوفر'}</td>
-                    </tr>
-                `;
+                list.innerHTML += `<tr><td><strong>زائر رقم (${index + 1}):</strong> <span style="font-family:monospace; color:#0984e3;">${v.visitorId}</span></td><td>${v.timestamp || 'غير متوفر'}</td></tr>`;
             });
         }
 
         window.loadAdminMessagesList = function() {
             let list = document.getElementById('adminMessagesList');
             list.innerHTML = '';
-            if(window.messages.length === 0) {
-                list.innerHTML = '<p style="text-align:center; color:#777; padding:15px;">لا توجد رسائل تواصل حتى الآن.</p>';
-                return;
-            }
+            if(window.messages.length === 0) { list.innerHTML = '<p style="text-align:center; color:#777; padding:15px;">لا توجد رسائل تواصل حتى الآن.</p>'; return; }
             window.messages.forEach((msg) => {
                 list.innerHTML += `
                     <div style="background:#f8f9fa; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #eee; position:relative;">
@@ -839,42 +1145,29 @@
         }
 
         window.deleteMessage = async function(docId) {
-            if(confirm('هل أنت متأكد من مسح هذه الرسالة؟')) {
-                await deleteDoc(doc(db, "messages", docId));
-            }
+            if(confirm('هل أنت متأكد من مسح هذه الرسالة؟')) { await deleteDoc(doc(db, "messages", docId)); }
         }
 
         window.renderPosts = function() {
             let grid = document.getElementById('postsGrid');
             grid.innerHTML = '';
             let searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-
             let filtered = window.posts.filter(p => {
                 let matchesSection = (window.currentSectionFilter === 'الكل' || p.section === window.currentSectionFilter);
                 let matchesSearch = p.title.toLowerCase().includes(searchTerm) || p.desc.toLowerCase().includes(searchTerm);
                 return matchesSection && matchesSearch;
             });
-
             let suggestionsBox = document.getElementById('searchSuggestions');
             if(searchTerm !== '') {
                 let matchedSuggestions = window.posts.filter(p => (p.title.toLowerCase().includes(searchTerm) || p.desc.toLowerCase().includes(searchTerm)));
                 if(matchedSuggestions.length > 0) {
                     suggestionsBox.innerHTML = '';
-                    matchedSuggestions.forEach(item => {
-                        suggestionsBox.innerHTML += `<div class="suggestion-item" onclick="selectSuggestion('${item.docId}')">📌 ${item.title}</div>`;
-                    });
+                    matchedSuggestions.forEach(item => { suggestionsBox.innerHTML += `<div class="suggestion-item" onclick="selectSuggestion('${item.docId}')">📌 ${item.title}</div>`; });
                     suggestionsBox.style.display = 'block';
-                } else {
-                    suggestionsBox.style.display = 'none';
-                }
-            } else {
-                suggestionsBox.style.display = 'none';
-            }
+                } else { suggestionsBox.style.display = 'none'; }
+            } else { suggestionsBox.style.display = 'none'; }
 
-            if(filtered.length === 0) {
-                grid.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#777; padding:20px;">لا توجد منشورات متاحة حالياً.</p>`;
-                return;
-            }
+            if(filtered.length === 0) { grid.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#777; padding:20px;">لا توجد منشورات متاحة حالياً.</p>`; return; }
 
             filtered.forEach(post => {
                 let editBtnDisplay = window.isAdminLoggedIn ? 'block' : 'none';
@@ -892,20 +1185,9 @@
             });
         }
 
-        window.selectSuggestion = function(docId) {
-            document.getElementById('searchSuggestions').style.display = 'none';
-            openPostDetails(docId);
-        }
-
-        window.changeSection = function(section) {
-            window.currentSectionFilter = section;
-            window.renderSectionsNav();
-            window.renderPosts();
-        }
-
-        window.filterPosts = function() {
-            window.renderPosts();
-        }
+        window.selectSuggestion = function(docId) { document.getElementById('searchSuggestions').style.display = 'none'; openPostDetails(docId); }
+        window.changeSection = function(section) { window.currentSectionFilter = section; window.renderSectionsNav(); window.renderPosts(); }
+        window.filterPosts = function() { window.renderPosts(); }
 
         window.currentActivePostId = null;
 
@@ -913,17 +1195,11 @@
             window.currentActivePostId = docId;
             let post = window.posts.find(p => p.docId === docId);
             let content = document.getElementById('detailsContent');
-
             let interactionType = post.interactionType || 'link';
-
             let formHtml = '';
             if(interactionType === 'link') {
                 let targetLink = post.autoReplyValue || '#';
-                formHtml = `
-                    <div style="text-align:center; margin: 10px 0;">
-                        <a href="${targetLink}" target="_blank" class="btn" style="display:inline-block; text-decoration:none; padding:8px 18px; font-size:0.9rem;">انقر هنا لتواصل معنا على الفيس</a>
-                    </div>
-                `;
+                formHtml = `<div style="text-align:center; margin: 10px 0;"><a href="${targetLink}" target="_blank" class="btn" style="display:inline-block; text-decoration:none; padding:8px 18px; font-size:0.9rem;">انقر هنا لتواصل معنا على الفيس</a></div>`;
             } else {
                 formHtml = `
                     <h3 style="margin-bottom:6px; font-size:0.95rem;">مهتم بهذا المنشور؟ اطلب الآن:</h3>
@@ -935,33 +1211,23 @@
             }
 
             content.innerHTML = `
-                <div style="background-color: #f8f9fa; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; overflow: hidden;">
-                    <img src="${post.image}" style="max-width: 100%; max-height: 250px; object-fit: contain;">
-                </div>
+                <div style="background-color: #f8f9fa; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; overflow: hidden;"><img src="${post.image}" style="max-width: 100%; max-height: 250px; object-fit: contain;"></div>
                 <h2 style="color:var(--primary); margin-bottom:6px; font-size:1.15rem;">${post.title}</h2>
                 <p style="margin-bottom:10px; font-size:0.85rem; color:#555;">${post.desc}</p>
                 <hr style="margin:10px 0; border:0; border-top:1px solid #eee;">
                 ${formHtml}
-                
                 <hr style="margin:10px 0; border:0; border-top:1px solid #eee;">
-                
-                <!-- قسم التعليقات -->
                 <h3 style="font-size:1rem; margin-bottom:8px; color:var(--dark);">💬 تعليقات المشترين</h3>
-                <div id="modalCommentsList" style="max-height: 120px; overflow-y: auto; margin-bottom: 12px;"></div>
-
+                <div id="modalCommentsList" style="margin-bottom: 12px;"></div>
                 <div style="background:#f8f9fa; padding:10px; border-radius:8px; border:1px solid #eee;">
                     <h4 style="font-size:0.85rem; margin-bottom:6px; color:var(--primary);">أضف تعليقك على هذا المنشور:</h4>
                     <input type="text" id="commenterName" placeholder="اسمك الكريم" style="margin:4px 0; padding:6px; font-size:0.85rem;">
                     <textarea id="commenterText" placeholder="اكتب تعليقك هنا..." style="margin:4px 0; padding:6px; font-size:0.85rem; height: 50px;"></textarea>
                     <button class="btn" style="width:100%; margin-top:4px; padding:8px; font-size:0.85rem;" onclick="submitComment('${post.docId}')">إرسال التعليق للموافقة</button>
                 </div>
-
                 <br>
-                <div style="text-align:center;">
-                    <button onclick="closeModal('detailsModal')" style="background:none; border:none; color:gray; cursor:pointer; font-weight:bold; font-size:0.85rem;">إغلاق</button>
-                </div>
+                <div style="text-align:center;"><button onclick="closeModal('detailsModal')" style="background:none; border:none; color:gray; cursor:pointer; font-weight:bold; font-size:0.85rem;">إغلاق</button></div>
             `;
-            
             renderCommentsInModal(docId);
             window.openModal('detailsModal');
         }
@@ -970,14 +1236,13 @@
             let listDiv = document.getElementById('modalCommentsList');
             if(!listDiv) return;
             listDiv.innerHTML = '';
-
             let approvedComments = window.comments.filter(c => c.postId === postId && c.status === 'approved');
             if(approvedComments.length === 0) {
                 listDiv.innerHTML = '<p style="text-align:center; color:gray; font-size:0.8rem;">لا توجد تعليقات معتمدة بعد على هذا المنشور.</p>';
             } else {
                 approvedComments.forEach(comm => {
                     listDiv.innerHTML += `
-                        <div style="background:#fff; padding:6px 8px; margin-bottom:4px; border-radius:6px; border-right: 3px solid var(--primary); border:1px solid #eee;">
+                        <div style="background:#fff; padding:6px 8px; margin-bottom:6px; border-radius:6px; border-right: 3px solid var(--primary); border:1px solid #eee;">
                             <strong style="font-size:0.8rem; color:var(--dark);">${comm.name}:</strong>
                             <p style="margin-top:2px; color:#555; font-size:0.8rem;">${comm.text}</p>
                         </div>
@@ -989,20 +1254,8 @@
         window.submitComment = async function(postId) {
             let name = document.getElementById('commenterName').value.trim();
             let text = document.getElementById('commenterText').value.trim();
-
-            if(!name || !text) {
-                alert('الرجاء تعبئة الاسم ونص التعليق');
-                return;
-            }
-
-            let newComment = {
-                postId: postId,
-                name: name,
-                text: text,
-                status: 'pending',
-                timestamp: Date.now()
-            };
-
+            if(!name || !text) { alert('الرجاء تعبئة الاسم ونص التعليق'); return; }
+            let newComment = { postId: postId, name: name, text: text, status: 'pending', timestamp: Date.now() };
             await addDoc(collection(db, "comments"), newComment);
             alert('تم إرسال تعليقك بنجاح، وسيظهر بعد موافقة الإدارة.');
             document.getElementById('commenterName').value = '';
@@ -1011,18 +1264,11 @@
 
         window.submitOrder = async function(postId, postTitle) {
             let newOrd = { id: Date.now(), postTitle, status: 'قيد المعالجة' };
-
             let name = document.getElementById('orderName').value.trim();
             let phone = document.getElementById('orderPhone').value.trim();
             let details = document.getElementById('orderDetails').value.trim();
-            if(!name || !phone || !details) {
-                alert('الرجاء تعبئة جميع الحقول (الاسم، رقم الهاتف، والتفاصيل)');
-                return;
-            }
-            newOrd.name = name;
-            newOrd.phone = phone;
-            newOrd.details = details;
-
+            if(!name || !phone || !details) { alert('الرجاء تعبئة جميع الحقول (الاسم، رقم الهاتف، والتفاصيل)'); return; }
+            newOrd.name = name; newOrd.phone = phone; newOrd.details = details;
             await addDoc(collection(db, "orders"), newOrd);
             window.closeModal('detailsModal');
             alert('تم إرسال طلبك بنجاح! شكراً لك.');
@@ -1035,18 +1281,23 @@
                 clickCount = 0;
                 let pass = prompt('أدخل كلمة سر الأدمن:');
                 let fullAdminContainer = document.getElementById('fullAdminSectionsContainer');
-                
                 if(pass === 'ooddaayy') {
                     window.isAdminLoggedIn = true;
+                    localStorage.setItem('isAdminLoggedIn', 'true');
+                    localStorage.setItem('adminPassType', 'ooddaayy');
                     fullAdminContainer.style.display = 'block';
                     document.getElementById('admin-panel').style.display = 'block';
+                    requestNotificationPermission();
                     renderPosts();
                     alert('مرحباً بك أيها الأدمن (صلاحيات كاملة)!');
                     window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
                 } else if(pass === 'عدي11') {
                     window.isAdminLoggedIn = true;
+                    localStorage.setItem('isAdminLoggedIn', 'true');
+                    localStorage.setItem('adminPassType', 'عدي11');
                     fullAdminContainer.style.display = 'none';
                     document.getElementById('admin-panel').style.display = 'block';
+                    requestNotificationPermission();
                     renderPosts();
                     alert('مرحباً بك عدي (طلبات الزوار، الرسائل، والعداد الحقيقي فقط)!');
                     window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
@@ -1058,6 +1309,8 @@
 
         window.logoutAdmin = function() {
             window.isAdminLoggedIn = false;
+            localStorage.removeItem('isAdminLoggedIn');
+            localStorage.removeItem('adminPassType');
             document.getElementById('admin-panel').style.display = 'none';
             renderPosts();
             alert('تم تسجيل خروج الأدمن');
@@ -1065,16 +1318,10 @@
 
         window.addSection = async function() {
             let name = document.getElementById('newSectionName').value.trim();
-            if(!name) {
-                alert('الرجاء إدخال اسم القسم');
-                return;
-            }
-            if(window.sections.includes(name)) {
-                alert('هذا القسم موجود مسبقاً');
-                return;
-            }
+            if(!name) { alert('الرجاء إدخال اسم القسم'); return; }
+            if(window.sections.includes(name)) { alert('هذا القسم موجود مسبقاً'); return; }
             window.sections.push(name);
-            await setDoc(doc(db, "settings", "main"), { announcement: window.siteAnnouncement, sections: window.sections }, { merge: true });
+            await setDoc(doc(db, "settings", "main"), { announcement: window.siteAnnouncement, facebookLink: window.facebookChatLink, sections: window.sections }, { merge: true });
             document.getElementById('newSectionName').value = '';
             alert('تم إضافة القسم بنجاح للزوار!');
         }
@@ -1082,7 +1329,7 @@
         window.deleteSection = async function(sec) {
             if(confirm(`هل أنت متأكد من مسح القسم (${sec})؟`)) {
                 window.sections = window.sections.filter(s => s !== sec);
-                await setDoc(doc(db, "settings", "main"), { announcement: window.siteAnnouncement, sections: window.sections }, { merge: true });
+                await setDoc(doc(db, "settings", "main"), { announcement: window.siteAnnouncement, facebookLink: window.facebookChatLink, sections: window.sections }, { merge: true });
                 if(window.currentSectionFilter === sec) window.currentSectionFilter = 'الكل';
             }
         }
@@ -1091,14 +1338,11 @@
             let newName = prompt('أدخل الاسم الجديد للقسم:', oldName);
             if(newName && newName.trim() !== '' && newName !== oldName) {
                 newName = newName.trim();
-                if(window.sections.includes(newName)) {
-                    alert('هذا الاسم موجود مسبقاً');
-                    return;
-                }
+                if(window.sections.includes(newName)) { alert('هذا الاسم موجود مسبقاً'); return; }
                 let index = window.sections.indexOf(oldName);
                 if(index !== -1) {
                     window.sections[index] = newName;
-                    await setDoc(doc(db, "settings", "main"), { announcement: window.siteAnnouncement, sections: window.sections }, { merge: true });
+                    await setDoc(doc(db, "settings", "main"), { announcement: window.siteAnnouncement, facebookLink: window.facebookChatLink, sections: window.sections }, { merge: true });
                     alert('تم تحديث وتغيير اسم القسم بنجاح!');
                 }
             }
@@ -1112,11 +1356,7 @@
             let autoReplyValue = document.getElementById('postAutoReplyValue').value;
             let imageInput = document.getElementById('postImage');
 
-            if(!title || !desc) {
-                alert('الرجاء إدخال العنوان والتفاصيل');
-                return;
-            }
-
+            if(!title || !desc) { alert('الرجاء إدخال العنوان والتفاصيل'); return; }
             let imageURL = 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500';
             if(imageInput.files && imageInput.files[0]) {
                 let reader = new FileReader();
@@ -1126,26 +1366,18 @@
                     img.onload = function() {
                         let canvas = document.createElement('canvas');
                         let ctx = canvas.getContext('2d');
-                        let MAX_WIDTH = 600;
-                        let MAX_HEIGHT = 600;
-                        let width = img.width;
-                        let height = img.height;
-                        if (width > height) {
-                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-                        } else {
-                            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
-                        }
-                        canvas.width = width;
-                        canvas.height = height;
+                        let MAX_WIDTH = 600, MAX_HEIGHT = 600;
+                        let width = img.width, height = img.height;
+                        if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } }
+                        else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
+                        canvas.width = width; canvas.height = height;
                         ctx.drawImage(img, 0, 0, width, height);
                         let compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
                         saveNewPostData(title, section, desc, interactionType, autoReplyValue, compressedDataUrl);
                     }
                 }
                 reader.readAsDataURL(imageInput.files[0]);
-            } else {
-                saveNewPostData(title, section, desc, interactionType, autoReplyValue, imageURL);
-            }
+            } else { saveNewPostData(title, section, desc, interactionType, autoReplyValue, imageURL); }
         }
 
         async function saveNewPostData(title, section, desc, interactionType, autoReplyValue, image) {
@@ -1157,16 +1389,12 @@
                 document.getElementById('postDesc').value = '';
                 document.getElementById('postAutoReplyValue').value = '';
                 document.getElementById('postImage').value = '';
-            } catch (err) {
-                console.error("خطأ أثناء النشر:", err);
-                alert("حدث خطأ أثناء حفظ المنشور، يرجى المحاولة مرة أخرى.");
-            }
+            } catch (err) { console.error("خطأ أثناء النشر:", err); alert("حدث خطأ أثناء حفظ المنشور، يرجى المحاولة مرة أخرى."); }
         }
 
         window.openEditPostModal = function(docId) {
             let post = window.posts.find(p => p.docId === docId);
             if(!post) return;
-
             document.getElementById('editPostDocId').value = post.docId;
             document.getElementById('editPostTitle').value = post.title;
             document.getElementById('editPostSection').value = post.section;
@@ -1174,7 +1402,6 @@
             document.getElementById('editPostInteractionType').value = post.interactionType || 'link';
             document.getElementById('editPostAutoReplyValue').value = post.autoReplyValue || '';
             document.getElementById('editPostImage').value = '';
-
             window.openModal('editPostModal');
         }
 
@@ -1187,11 +1414,7 @@
             let autoReplyValue = document.getElementById('editPostAutoReplyValue').value;
             let imageInput = document.getElementById('editPostImage');
 
-            if(!title || !desc) {
-                alert('الرجاء إدخال العنوان والتفاصيل');
-                return;
-            }
-
+            if(!title || !desc) { alert('الرجاء إدخال العنوان والتفاصيل'); return; }
             let post = window.posts.find(p => p.docId === docId);
             if(!post) return;
 
@@ -1203,56 +1426,32 @@
                     img.onload = function() {
                         let canvas = document.createElement('canvas');
                         let ctx = canvas.getContext('2d');
-                        let MAX_WIDTH = 600;
-                        let MAX_HEIGHT = 600;
-                        let width = img.width;
-                        let height = img.height;
-                        if (width > height) {
-                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-                        } else {
-                            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
-                        }
-                        canvas.width = width;
-                        canvas.height = height;
+                        let MAX_WIDTH = 600, MAX_HEIGHT = 600;
+                        let width = img.width, height = img.height;
+                        if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } }
+                        else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
+                        canvas.width = width; canvas.height = height;
                         ctx.drawImage(img, 0, 0, width, height);
                         let compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
                         executeUpdatePost(docId, title, section, desc, interactionType, autoReplyValue, compressedDataUrl);
                     }
                 }
                 reader.readAsDataURL(imageInput.files[0]);
-            } else {
-                executeUpdatePost(docId, title, section, desc, interactionType, autoReplyValue, post.image);
-            }
+            } else { executeUpdatePost(docId, title, section, desc, interactionType, autoReplyValue, post.image); }
         }
 
         async function executeUpdatePost(docId, title, section, desc, interactionType, autoReplyValue, image) {
             try {
                 let postRef = doc(db, "posts", docId);
                 await updateDoc(postRef, { title, section, desc, interactionType, autoReplyValue, image });
-
                 alert('تم تعديل المنشور بنجاح!');
                 window.closeModal('editPostModal');
-            } catch(e) {
-                console.error("خطأ أثناء التعديل:", e);
-                alert("حدث خطأ أثناء تعديل المنشور.");
-            }
+            } catch(e) { console.error("خطأ أثناء التعديل:", e); alert("حدث خطأ أثناء تعديل المنشور."); }
         }
 
-        window.deletePost = async function(docId) {
-            if(confirm('هل أنت متأكد من مسح هذا المنشور؟')) {
-                await deleteDoc(doc(db, "posts", docId));
-            }
-        }
-
-        window.deleteOrder = async function(docId) {
-            if(confirm('هل أنت متأكد من مسح هذا الطلب؟')) {
-                await deleteDoc(doc(db, "orders", docId));
-            }
-        }
-
-        window.updateOrderStatus = async function(docId, status) {
-            await updateDoc(doc(db, "orders", docId), { status: status });
-        }
+        window.deletePost = async function(docId) { if(confirm('هل أنت متأكد من مسح هذا المنشور؟')) { await deleteDoc(doc(db, "posts", docId)); } }
+        window.deleteOrder = async function(docId) { if(confirm('هل أنت متأكد من مسح هذا الطلب؟')) { await deleteDoc(doc(db, "orders", docId)); } }
+        window.updateOrderStatus = async function(docId, status) { await updateDoc(doc(db, "orders", docId), { status: status }); }
 
         window.loadAdminData = function() {
             let adminOrderCount = document.getElementById('adminOrderCount');
@@ -1263,6 +1462,12 @@
 
             let adminVisitorCount = document.getElementById('adminVisitorCount');
             if(adminVisitorCount) adminVisitorCount.innerText = window.visitors.length;
+
+            let adminChatCount = document.getElementById('adminChatCount');
+            if(adminChatCount) {
+                let uniqueVisitors = [...new Set(window.chats.map(c => c.visitorId))];
+                adminChatCount.innerText = uniqueVisitors.length;
+            }
 
             let adminSectionsList = document.getElementById('adminSectionsList');
             adminSectionsList.innerHTML = '';
@@ -1280,9 +1485,8 @@
 
             let adminPostsList = document.getElementById('adminPostsList');
             adminPostsList.innerHTML = '';
-            if(window.posts.length === 0) {
-                adminPostsList.innerHTML = '<p style="color:#777; font-size:0.9rem;">لا توجد منشورات.</p>';
-            } else {
+            if(window.posts.length === 0) { adminPostsList.innerHTML = '<p style="color:#777; font-size:0.9rem;">لا توجد منشورات.</p>'; }
+            else {
                 window.posts.forEach(post => {
                     adminPostsList.innerHTML += `
                         <div style="background:#f8f9fa; padding:8px 12px; margin:5px 0; border-radius:6px; display:flex; justify-content:space-between; align-items:center; border:1px solid #eee;">
@@ -1298,9 +1502,8 @@
 
             let allCommentsList = document.getElementById('allCommentsAdminList');
             allCommentsList.innerHTML = '';
-            if(window.comments.length === 0) {
-                allCommentsList.innerHTML = '<p style="color:#777; font-size:0.9rem;">لا توجد تعليقات.</p>';
-            } else {
+            if(window.comments.length === 0) { allCommentsList.innerHTML = '<p style="color:#777; font-size:0.9rem;">لا توجد تعليقات.</p>'; }
+            else {
                 window.comments.forEach((comm) => {
                     let parentPost = window.posts.find(p => p.docId === comm.postId);
                     let postTitleText = parentPost ? parentPost.title : 'منشور محذوف';
@@ -1322,16 +1525,14 @@
 
             let ordersTable = document.getElementById('adminOrdersTable');
             ordersTable.innerHTML = '';
-            if(window.orders.length === 0) {
-                ordersTable.innerHTML = '<tr><td colspan="4" style="color:#777;">لا توجد طلبات حتى الآن.</td></tr>';
-            } else {
+            if(window.orders.length === 0) { ordersTable.innerHTML = '<tr><td colspan="4" style="color:#777;">لا توجد طلبات حتى الآن.</td></tr>'; }
+            else {
                 window.orders.forEach((ord) => {
                     let contentCell = `
                         <strong>الاسم:</strong> ${ord.name || '-'}<br>
                         <strong>الهاتف:</strong> <a href="https://wa.me/${(ord.phone || '').replace(/[^0-9]/g, '')}" target="_blank" style="color:#0984e3; text-decoration:none;">${ord.phone || '-'}</a><br>
                         <strong>التفاصيل:</strong> ${ord.details || '-'}
                     `;
-
                     ordersTable.innerHTML += `
                         <tr>
                             <td>${ord.postTitle}</td>
@@ -1352,15 +1553,8 @@
             }
         }
 
-        window.approveComment = async function(docId) {
-            await updateDoc(doc(db, "comments", docId), { status: 'approved' });
-        }
-
-        window.deleteComment = async function(docId) {
-            if(confirm('هل أنت متأكد من مسح هذا التعليق؟')) {
-                await deleteDoc(doc(db, "comments", docId));
-            }
-        }
+        window.approveComment = async function(docId) { await updateDoc(doc(db, "comments", docId), { status: 'approved' }); }
+        window.deleteComment = async function(docId) { if(confirm('هل أنت متأكد من مسح هذا التعليق؟')) { await deleteDoc(doc(db, "comments", docId)); } }
     </script>
 </body>
 </html>
