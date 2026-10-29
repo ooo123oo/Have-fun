@@ -675,7 +675,8 @@
                 grid.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#777; padding:20px; font-size:1rem;">جاري تحميل المحتوى...</p>`;
             }
 
-            history.replaceState({ page: "main" }, "");
+            // ضبط حالة السطر الأساسي عند فتح الموقع
+            history.replaceState({ page: "main" }, "", window.location.href);
 
             // استرجاع حالة تسجيل دخول الأدمن لمنع خروجه التلقائي
             let savedAdmin = localStorage.getItem('isAdminLoggedIn');
@@ -977,14 +978,15 @@
         }
 
         // ==========================================
-        // إدارة النوافذ وزر الرجوع
+        // إدارة النوافذ وزر الرجوع (عدم الخروج من الموقع وإغلاق النافذة)
         // ==========================================
         window.openModal = function(modalId) {
             let modal = document.getElementById(modalId);
             if(modal && modal.style.display !== 'flex') {
                 modal.style.display = 'flex';
                 window.activeModalsStack.push(modalId);
-                history.pushState({ modalOpen: modalId }, "");
+                // إضافة حالة وهمية لتاريخ المتصفح لمنع الخروج عند الضغط على زر الرجوع
+                history.pushState({ modalOpen: modalId }, "", window.location.href);
             }
         }
 
@@ -996,21 +998,25 @@
                 if(modalId === 'detailsModal') {
                     window.currentActivePostId = null;
                 }
+                // العودة خطوة للخلف في السجل لإزالة الحالة الوهمية
                 history.back();
             }
         }
 
+        // التقاط ضغطة زر الرجوع في الهاتف المتصفح الداخلي
         window.addEventListener('popstate', function(event) {
             if(window.activeModalsStack.length > 0) {
+                // سحب آخر نافذة مفتوحة وإغلاقها دون الخروج من الموقع
                 let lastModalId = window.activeModalsStack.pop();
                 let modal = document.getElementById(lastModalId);
                 if(modal) {
                     modal.style.display = 'none';
                     if(lastModalId === 'detailsModal') window.currentActivePostId = null;
                 }
-                history.pushState({ page: "main" }, "");
+                // الحفاظ على حالة البقاء داخل الصفحة الرئيسية وعدم الرجوع لصفحة فيسبوك أو تويتر السابقة
+                history.pushState({ page: "main" }, "", window.location.href);
             } else {
-                history.pushState({ page: "main" }, "");
+                history.pushState({ page: "main" }, "", window.location.href);
             }
         });
         // ==========================================
